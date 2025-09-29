@@ -38,8 +38,8 @@ type TicketStatus string
 const (
 	TicketStatusOpen       TicketStatus = "open"
 	TicketStatusInProgress TicketStatus = "in_progress"
-	TicketStatusResolved   TicketStatus = "resolved"
-	TicketStatusClosed     TicketStatus = "closed"
+	TicketStatusReceived   TicketStatus = "Received"
+	TicketStatusDeclined     TicketStatus = "Declined"
 	TicketStatusPending    TicketStatus = "pending"
 )
 
