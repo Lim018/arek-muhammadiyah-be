@@ -1,0 +1,21 @@
+# Folder build / hasil compile
+/build
+/dist
+
+# Dependency manager
+/node_modules
+/vendor
+
+# File environment / config sensitif
+.env
+*.local
+
+# File log
+*.log
+logs/
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
