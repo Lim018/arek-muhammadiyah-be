@@ -76,7 +76,7 @@ func SetupArticleRoutes(app *fiber.App) {
 	})
 
 	// Protected routes
-	articles.Use(middleware.JWTMiddleware())
+	articles.Use(middleware.Authorization())
 
 	articles.Post("/", func(c *fiber.Ctx) error {
 		userID := c.Locals("user_id").(string)

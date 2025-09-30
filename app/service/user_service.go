@@ -1,12 +1,13 @@
 package service
 
 import (
-	"errors"
 	"arek-muhammadiyah-be/app/model"
 	"arek-muhammadiyah-be/app/repository"
 	"arek-muhammadiyah-be/helper"
+	"arek-muhammadiyah-be/helper/utils"
+	"strconv"
 
-	"golang.org/x/crypto/bcrypt"
+	"github.com/gofiber/fiber/v2"
 )
 
 type UserService struct {
@@ -19,57 +20,108 @@ func NewUserService() *UserService {
 	}
 }
 
-func (s *UserService) GetAllUsers(page, limit int) ([]model.User, model.Pagination, error) {
+// Get all users
+func (s *UserService) GetAll(c *fiber.Ctx) error {
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 	offset := (page - 1) * limit
+
 	users, total, err := s.userRepo.GetAll(limit, offset)
 	if err != nil {
-		return nil, model.Pagination{}, err
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: err.Error(),
+		})
 	}
 
 	pagination := helper.CreatePagination(int64(page), int64(limit), total)
-	return users, pagination, nil
+
+	return c.JSON(model.PaginatedResponse{
+		Success:    true,
+		Message:    "Users retrieved successfully",
+		Data:       users,
+		Pagination: pagination,
+	})
 }
 
-func (s *UserService) GetUserByID(id string) (*model.User, error) {
-	return s.userRepo.GetByID(id)
-}
-
-func (s *UserService) CreateUser(req *model.CreateUserRequest) (*model.User, error) {
-	// Check if user already exists
-	existing, _ := s.userRepo.GetByID(req.ID)
-	if existing != nil {
-		return nil, errors.New("user already exists")
+// Get user by ID
+func (s *UserService) GetByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+	user, err := s.userRepo.GetByID(id)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(model.Response{
+			Success: false,
+			Message: "User not found",
+		})
 	}
 
-	// Hash password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	return c.JSON(model.Response{
+		Success: true,
+		Message: "User retrieved successfully",
+		Data:    user,
+	})
+}
+
+// Create user
+func (s *UserService) CreateUser(c *fiber.Ctx) error {
+	var req model.CreateUserRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+			Success: false,
+			Message: "Invalid request body",
+		})
+	}
+
+	// hash password
+	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		return nil, err
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: "Failed to hash password",
+		})
 	}
 
 	user := &model.User{
 		ID:        req.ID,
 		Name:      req.Name,
-		Password:  string(hashedPassword),
+		Password:  hashedPassword,
 		RoleID:    req.RoleID,
 		VillageID: req.VillageID,
 		NIK:       req.NIK,
 		Address:   req.Address,
 	}
 
-	err = s.userRepo.Create(user)
-	if err != nil {
-		return nil, err
+	if err := s.userRepo.Create(user); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+			Success: false,
+			Message: err.Error(),
+		})
 	}
 
-	return s.userRepo.GetByID(user.ID)
+	return c.Status(fiber.StatusCreated).JSON(model.Response{
+		Success: true,
+		Message: "User created successfully",
+		Data:    user,
+	})
 }
 
-func (s *UserService) UpdateUser(id string, req *model.UpdateUserRequest) (*model.User, error) {
-	// Check if user exists
+// Update user
+func (s *UserService) Update(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var req model.UpdateUserRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+			Success: false,
+			Message: "Invalid request body",
+		})
+	}
+
 	existing, err := s.userRepo.GetByID(id)
 	if err != nil {
-		return nil, errors.New("user not found")
+		return c.Status(fiber.StatusNotFound).JSON(model.Response{
+			Success: false,
+			Message: "User not found",
+		})
 	}
 
 	updateData := &model.User{
@@ -81,54 +133,109 @@ func (s *UserService) UpdateUser(id string, req *model.UpdateUserRequest) (*mode
 		Photo:     helper.GetStringPointer(req.Photo, existing.Photo),
 	}
 
-	err = s.userRepo.Update(id, updateData)
-	if err != nil {
-		return nil, err
+	if err := s.userRepo.Update(id, updateData); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+			Success: false,
+			Message: err.Error(),
+		})
 	}
 
-	return s.userRepo.GetByID(id)
+	return c.JSON(model.Response{
+		Success: true,
+		Message: "User updated successfully",
+		Data:    updateData,
+	})
 }
 
-func (s *UserService) DeleteUser(id string) error {
-	// Check if user exists
-	_, err := s.userRepo.GetByID(id)
-	if err != nil {
-		return errors.New("user not found")
+// Delete user
+func (s *UserService) Delete(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if _, err := s.userRepo.GetByID(id); err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(model.Response{
+			Success: false,
+			Message: "User not found",
+		})
 	}
 
-	return s.userRepo.Delete(id)
+	if err := s.userRepo.Delete(id); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(model.Response{
+		Success: true,
+		Message: "User deleted successfully",
+	})
 }
 
-func (s *UserService) Login(req *model.LoginRequest) (*model.User, error) {
-	user, err := s.userRepo.GetByID(req.ID)
+// Bulk create via CSV
+func (s *UserService) BulkCreate(c *fiber.Ctx) error {
+	file, err := c.FormFile("csv")
 	if err != nil {
-		return nil, errors.New("invalid credentials")
+		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+			Success: false,
+			Message: "CSV file required",
+		})
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	src, err := file.Open()
 	if err != nil {
-		return nil, errors.New("invalid credentials")
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: "Failed to open CSV file",
+		})
+	}
+	defer src.Close()
+
+	users, err := helper.ParseUsersFromCSV(src)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+			Success: false,
+			Message: "Failed to parse CSV: " + err.Error(),
+		})
 	}
 
-	return user, nil
-}
-
-func (s *UserService) BulkCreateUsers(users []model.CreateUserRequest) ([]model.User, error) {
 	var createdUsers []model.User
 	var failedUsers []string
 
 	for _, userReq := range users {
-		user, err := s.CreateUser(&userReq)
+		hashedPassword, err := utils.HashPassword(userReq.Password)
 		if err != nil {
 			failedUsers = append(failedUsers, userReq.ID)
 			continue
 		}
-		createdUsers = append(createdUsers, *user)
+
+		u := &model.User{
+			ID:        userReq.ID,
+			Name:      userReq.Name,
+			Password:  hashedPassword,
+			RoleID:    userReq.RoleID,
+			VillageID: userReq.VillageID,
+			NIK:       userReq.NIK,
+			Address:   userReq.Address,
+		}
+
+		if err := s.userRepo.Create(u); err != nil {
+			failedUsers = append(failedUsers, userReq.ID)
+			continue
+		}
+
+		createdUsers = append(createdUsers, *u)
 	}
 
 	if len(failedUsers) > 0 {
-		return createdUsers, errors.New("some users failed to create")
+		return c.Status(fiber.StatusPartialContent).JSON(model.Response{
+			Success: false,
+			Message: "Some users failed to create",
+			Data:    createdUsers,
+		})
 	}
 
-	return createdUsers, nil
+	return c.Status(fiber.StatusCreated).JSON(model.Response{
+		Success: true,
+		Message: "Users created successfully",
+		Data:    createdUsers,
+	})
 }

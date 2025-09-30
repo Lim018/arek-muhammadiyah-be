@@ -14,7 +14,7 @@ func SetupTicketRoutes(app *fiber.App) {
 	ticketService := service.NewTicketService()
 
 	// Protected routes
-	tickets.Use(middleware.JWTMiddleware())
+	tickets.Use(middleware.Authorization())
 
 	// Get all tickets (admin only)
 	tickets.Get("/", middleware.AdminOnly(), func(c *fiber.Ctx) error {
