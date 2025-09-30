@@ -1,9 +1,9 @@
 package route
 
 import (
-	"github.com/Lim018/arek-muhammadiyah-be/app/model"
-	"github.com/Lim018/arek-muhammadiyah-be/app/service"
-	"github.com/Lim018/arek-muhammadiyah-be/helper"
+	"arek-muhammadiyah-be/app/model"
+	"arek-muhammadiyah-be/app/service"
+	"arek-muhammadiyah-be/helper"
 
 	"github.com/gofiber/fiber/v2"
 )

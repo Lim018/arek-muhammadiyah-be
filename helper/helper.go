@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
-	"github.com/Lim018/arek-muhammadiyah-be/app/model"
+	"arek-muhammadiyah-be/app/model"
 	"regexp"
 	"strings"
 	"time"

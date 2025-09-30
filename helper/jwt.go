@@ -2,7 +2,7 @@ package helper
 
 import (
 	"errors"
-	"github.com/Lim018/arek-muhammadiyah-be/config"
+	"arek-muhammadiyah-be/config"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"

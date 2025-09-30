@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/Lim018/arek-muhammadiyah-be/helper"
+	"arek-muhammadiyah-be/helper"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"

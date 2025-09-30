@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 	"log"
-	"github.com/Lim018/arek-muhammadiyah-be/config"
+	"arek-muhammadiyah-be/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

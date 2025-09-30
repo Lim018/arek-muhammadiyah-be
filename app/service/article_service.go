@@ -2,9 +2,9 @@ package service
 
 import (
 	"errors"
-	"github.com/Lim018/arek-muhammadiyah-be/app/model"
-	"github.com/Lim018/arek-muhammadiyah-be/app/repository"
-	"github.com/Lim018/arek-muhammadiyah-be/helper"
+	"arek-muhammadiyah-be/app/model"
+	"arek-muhammadiyah-be/app/repository"
+	"arek-muhammadiyah-be/helper"
 	// "strings"
 )
 
