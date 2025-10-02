@@ -6,7 +6,7 @@ type Category struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	Name        string    `json:"name" gorm:"not null"`
 	Description *string   `json:"description"`
-	Color       *string   `json:"color"` // hex color
+	Color       string    `json:"color" gorm:"default:'#10B981'"`
 	IsActive    bool      `json:"is_active" gorm:"default:true"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
@@ -17,16 +17,16 @@ type Category struct {
 }
 
 type Article struct {
-	ID             uint      `json:"id" gorm:"primaryKey"`
-	UserID         string    `json:"user_id" gorm:"not null"`
-	CategoryID     *uint     `json:"category_id"`
-	Title          string    `json:"title" gorm:"not null"`
-	Slug           string    `json:"slug" gorm:"unique;not null"`
-	Content        string    `json:"content" gorm:"not null"`
-	FeaturedImage  *string   `json:"featured_image"`
-	IsPublished    bool      `json:"is_published" gorm:"default:false"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	ID            uint      `json:"id" gorm:"primaryKey"`
+	UserID        string    `json:"user_id" gorm:"not null"`
+	CategoryID    *uint     `json:"category_id"`
+	Title         string    `json:"title" gorm:"not null"`
+	Slug          string    `json:"slug" gorm:"unique;not null"`
+	Content       string    `json:"content" gorm:"not null"`
+	FeatureImage  *string   `json:"feature_image"`
+	IsPublished   bool      `json:"is_published" gorm:"default:false"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 	
 	// Relations
 	User     *User     `json:"user,omitempty" gorm:"foreignKey:UserID"`
@@ -36,11 +36,11 @@ type Article struct {
 type TicketStatus string
 
 const (
-	TicketStatusOpen       TicketStatus = "open"
+	TicketStatusUnread     TicketStatus = "unread"
+	TicketStatusRead       TicketStatus = "read"
 	TicketStatusInProgress TicketStatus = "in_progress"
-	TicketStatusReceived   TicketStatus = "Received"
-	TicketStatusDeclined     TicketStatus = "Declined"
-	TicketStatusPending    TicketStatus = "pending"
+	TicketStatusResolved   TicketStatus = "resolved"
+	TicketStatusClosed     TicketStatus = "closed"
 )
 
 type Ticket struct {
@@ -49,7 +49,7 @@ type Ticket struct {
 	CategoryID  *uint        `json:"category_id"`
 	Title       string       `json:"title" gorm:"not null"`
 	Description string       `json:"description" gorm:"not null"`
-	Status      TicketStatus `json:"status" gorm:"default:'open'"`
+	Status      TicketStatus `json:"status" gorm:"default:'unread'"`
 	Resolution  *string      `json:"resolution"`
 	CreatedAt   time.Time    `json:"created_at"`
 	UpdatedAt   time.Time    `json:"updated_at"`

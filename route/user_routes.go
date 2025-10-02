@@ -3,13 +3,11 @@ package route
 import (
 	"arek-muhammadiyah-be/app/service"
 	"arek-muhammadiyah-be/middleware"
-
 	"github.com/gofiber/fiber/v2"
 )
 
 func SetupUserRoutes(app *fiber.App) {
 	userService := service.NewUserService()
-
 	users := app.Group("/api/users", middleware.Authorization())
 
 	users.Get("/", userService.GetAll)
@@ -18,4 +16,6 @@ func SetupUserRoutes(app *fiber.App) {
 	users.Put("/:id", middleware.AdminOnly(), userService.Update)
 	users.Delete("/:id", middleware.AdminOnly(), userService.Delete)
 	users.Post("/bulk", middleware.AdminOnly(), userService.BulkCreate)
+	users.Get("/village/:villageId", userService.GetByVillage)
+	users.Get("/card-status/:status", middleware.AdminOnly(), userService.GetByCardStatus)
 }

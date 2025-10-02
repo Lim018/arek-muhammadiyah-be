@@ -20,7 +20,6 @@ func NewUserService() *UserService {
 	}
 }
 
-// Get all users
 func (s *UserService) GetAll(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
@@ -44,7 +43,6 @@ func (s *UserService) GetAll(c *fiber.Ctx) error {
 	})
 }
 
-// Get user by ID
 func (s *UserService) GetByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	user, err := s.userRepo.GetByID(id)
@@ -62,7 +60,6 @@ func (s *UserService) GetByID(c *fiber.Ctx) error {
 	})
 }
 
-// Create user
 func (s *UserService) CreateUser(c *fiber.Ctx) error {
 	var req model.CreateUserRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -72,7 +69,6 @@ func (s *UserService) CreateUser(c *fiber.Ctx) error {
 		})
 	}
 
-	// hash password
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
@@ -82,13 +78,16 @@ func (s *UserService) CreateUser(c *fiber.Ctx) error {
 	}
 
 	user := &model.User{
-		ID:        req.ID,
-		Name:      req.Name,
-		Password:  hashedPassword,
-		RoleID:    req.RoleID,
-		VillageID: req.VillageID,
-		NIK:       req.NIK,
-		Address:   req.Address,
+		ID:         req.ID,
+		Name:       req.Name,
+		Password:   hashedPassword,
+		Telp:       req.Telp,
+		RoleID:     req.RoleID,
+		VillageID:  req.VillageID,
+		NIK:        req.NIK,
+		Address:    req.Address,
+		CardStatus: helper.GetStringValue(req.CardStatus, "pending"),
+		IsMobile:   helper.GetBoolValue(req.IsMobile, false),
 	}
 
 	if err := s.userRepo.Create(user); err != nil {
@@ -105,7 +104,6 @@ func (s *UserService) CreateUser(c *fiber.Ctx) error {
 	})
 }
 
-// Update user
 func (s *UserService) Update(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var req model.UpdateUserRequest
@@ -125,12 +123,13 @@ func (s *UserService) Update(c *fiber.Ctx) error {
 	}
 
 	updateData := &model.User{
-		Name:      helper.GetStringValue(req.Name, existing.Name),
-		RoleID:    helper.GetUintPointer(req.RoleID, existing.RoleID),
-		VillageID: helper.GetUintPointer(req.VillageID, existing.VillageID),
-		NIK:       helper.GetStringPointer(req.NIK, existing.NIK),
-		Address:   helper.GetStringPointer(req.Address, existing.Address),
-		Photo:     helper.GetStringPointer(req.Photo, existing.Photo),
+		Name:       helper.GetStringValue(req.Name, existing.Name),
+		Telp:       helper.GetStringPointer(req.Telp, existing.Telp),
+		RoleID:     helper.GetUintPointer(req.RoleID, existing.RoleID),
+		VillageID:  helper.GetUintPointer(req.VillageID, existing.VillageID),
+		NIK:        helper.GetStringPointer(req.NIK, existing.NIK),
+		Address:    helper.GetStringPointer(req.Address, existing.Address),
+		CardStatus: helper.GetStringValue(req.CardStatus, existing.CardStatus),
 	}
 
 	if err := s.userRepo.Update(id, updateData); err != nil {
@@ -147,7 +146,6 @@ func (s *UserService) Update(c *fiber.Ctx) error {
 	})
 }
 
-// Delete user
 func (s *UserService) Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if _, err := s.userRepo.GetByID(id); err != nil {
@@ -170,7 +168,6 @@ func (s *UserService) Delete(c *fiber.Ctx) error {
 	})
 }
 
-// Bulk create via CSV
 func (s *UserService) BulkCreate(c *fiber.Ctx) error {
 	file, err := c.FormFile("csv")
 	if err != nil {
@@ -208,13 +205,16 @@ func (s *UserService) BulkCreate(c *fiber.Ctx) error {
 		}
 
 		u := &model.User{
-			ID:        userReq.ID,
-			Name:      userReq.Name,
-			Password:  hashedPassword,
-			RoleID:    userReq.RoleID,
-			VillageID: userReq.VillageID,
-			NIK:       userReq.NIK,
-			Address:   userReq.Address,
+			ID:         userReq.ID,
+			Name:       userReq.Name,
+			Password:   hashedPassword,
+			Telp:       userReq.Telp,
+			RoleID:     userReq.RoleID,
+			VillageID:  userReq.VillageID,
+			NIK:        userReq.NIK,
+			Address:    userReq.Address,
+			CardStatus: helper.GetStringValue(userReq.CardStatus, "pending"),
+			IsMobile:   helper.GetBoolValue(userReq.IsMobile, false),
 		}
 
 		if err := s.userRepo.Create(u); err != nil {
@@ -229,7 +229,10 @@ func (s *UserService) BulkCreate(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusPartialContent).JSON(model.Response{
 			Success: false,
 			Message: "Some users failed to create",
-			Data:    createdUsers,
+			Data: fiber.Map{
+				"created": createdUsers,
+				"failed":  failedUsers,
+			},
 		})
 	}
 
@@ -237,5 +240,53 @@ func (s *UserService) BulkCreate(c *fiber.Ctx) error {
 		Success: true,
 		Message: "Users created successfully",
 		Data:    createdUsers,
+	})
+}
+
+func (s *UserService) GetByVillage(c *fiber.Ctx) error {
+	villageID, _ := strconv.ParseUint(c.Params("villageId"), 10, 32)
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	offset := (page - 1) * limit
+
+	users, total, err := s.userRepo.GetByVillage(uint(villageID), limit, offset)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: err.Error(),
+		})
+	}
+
+	pagination := helper.CreatePagination(int64(page), int64(limit), total)
+
+	return c.JSON(model.PaginatedResponse{
+		Success:    true,
+		Message:    "Users retrieved successfully",
+		Data:       users,
+		Pagination: pagination,
+	})
+}
+
+func (s *UserService) GetByCardStatus(c *fiber.Ctx) error {
+	status := c.Params("status")
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	offset := (page - 1) * limit
+
+	users, total, err := s.userRepo.GetByCardStatus(status, limit, offset)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: err.Error(),
+		})
+	}
+
+	pagination := helper.CreatePagination(int64(page), int64(limit), total)
+
+	return c.JSON(model.PaginatedResponse{
+		Success:    true,
+		Message:    "Users retrieved successfully",
+		Data:       users,
+		Pagination: pagination,
 	})
 }
