@@ -1,9 +1,9 @@
 package route
 
 import (
-	"github.com/Lim018/arek-muhammadiyah-be/app/model"
-	"github.com/Lim018/arek-muhammadiyah-be/app/service"
-	"github.com/Lim018/arek-muhammadiyah-be/middleware"
+	"arek-muhammadiyah-be/app/model"
+	"arek-muhammadiyah-be/app/service"
+	"arek-muhammadiyah-be/middleware"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -76,7 +76,7 @@ func SetupArticleRoutes(app *fiber.App) {
 	})
 
 	// Protected routes
-	articles.Use(middleware.JWTMiddleware())
+	articles.Use(middleware.Authorization())
 
 	articles.Post("/", func(c *fiber.Ctx) error {
 		userID := c.Locals("user_id").(string)

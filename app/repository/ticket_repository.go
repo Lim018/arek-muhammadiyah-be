@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"github.com/Lim018/arek-muhammadiyah-be/app/model"
-	"github.com/Lim018/arek-muhammadiyah-be/database"
+	"arek-muhammadiyah-be/app/model"
+	"arek-muhammadiyah-be/database"
 
 	"gorm.io/gorm"
 )

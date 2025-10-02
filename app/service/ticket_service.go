@@ -2,9 +2,9 @@ package service
 
 import (
 	"errors"
-	"github.com/Lim018/arek-muhammadiyah-be/app/model"
-	"github.com/Lim018/arek-muhammadiyah-be/app/repository"
-	"github.com/Lim018/arek-muhammadiyah-be/helper"
+	"arek-muhammadiyah-be/app/model"
+	"arek-muhammadiyah-be/app/repository"
+	"arek-muhammadiyah-be/helper"
 	"time"
 )
 
@@ -50,7 +50,7 @@ func (s *TicketService) CreateTicket(userID string, req *model.CreateTicketReque
 		CategoryID:  req.CategoryID,
 		Title:       req.Title,
 		Description: req.Description,
-		Status:      model.TicketStatusOpen,
+		Status:      model.TicketStatusUnread,
 	}
 
 	err := s.ticketRepo.Create(ticket)
@@ -71,6 +71,7 @@ func (s *TicketService) UpdateTicket(id uint, req *model.UpdateTicketRequest) (*
 	
 	if req.Status != nil {
 		updateData.Status = *req.Status
+		
 		if *req.Status == model.TicketStatusResolved || *req.Status == model.TicketStatusClosed {
 			now := time.Now()
 			updateData.ResolvedAt = &now

@@ -2,9 +2,9 @@ package service
 
 import (
 	"errors"
-	"github.com/Lim018/arek-muhammadiyah-be/app/model"
-	"github.com/Lim018/arek-muhammadiyah-be/app/repository"
-	"github.com/Lim018/arek-muhammadiyah-be/helper"
+	"arek-muhammadiyah-be/app/model"
+	"arek-muhammadiyah-be/app/repository"
+	"arek-muhammadiyah-be/helper"
 	// "strings"
 )
 
@@ -52,7 +52,7 @@ func (s *ArticleService) CreateArticle(userID string, req *model.CreateArticleRe
 		Title:         req.Title,
 		Slug:          slug,
 		Content:       req.Content,
-		FeaturedImage: req.FeaturedImage,
+		FeatureImage: req.FeatureImage,
 		IsPublished:   helper.GetBoolValue(req.IsPublished, false),
 	}
 
@@ -87,7 +87,7 @@ func (s *ArticleService) UpdateArticle(id uint, req *model.CreateArticleRequest)
 		Title:         helper.GetStringValue(&req.Title, existing.Title),
 		Slug:          slug,
 		Content:       helper.GetStringValue(&req.Content, existing.Content),
-		FeaturedImage: helper.GetStringPointer(req.FeaturedImage, existing.FeaturedImage),
+		FeatureImage: helper.GetStringPointer(req.FeatureImage, existing.FeatureImage),
 		IsPublished:   helper.GetBoolValue(req.IsPublished, existing.IsPublished),
 	}
 

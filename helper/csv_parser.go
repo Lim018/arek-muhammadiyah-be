@@ -3,7 +3,7 @@ package helper
 import (
 	"encoding/csv"
 	"io"
-	"github.com/Lim018/arek-muhammadiyah-be/app/model"
+	"arek-muhammadiyah-be/app/model"
 	"strconv"
 	"strings"
 )

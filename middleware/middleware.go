@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/Lim018/arek-muhammadiyah-be/config"
+	"arek-muhammadiyah-be/config"
 
 	"github.com/gofiber/fiber/v2"
 )

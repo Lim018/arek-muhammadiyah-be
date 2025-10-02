@@ -1,9 +1,9 @@
 package route
 
 import (
-	"github.com/Lim018/arek-muhammadiyah-be/app/model"
-	"github.com/Lim018/arek-muhammadiyah-be/app/service"
-	"github.com/Lim018/arek-muhammadiyah-be/middleware"
+	"arek-muhammadiyah-be/app/model"
+	"arek-muhammadiyah-be/app/service"
+	"arek-muhammadiyah-be/middleware"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,7 +14,7 @@ func SetupTicketRoutes(app *fiber.App) {
 	ticketService := service.NewTicketService()
 
 	// Protected routes
-	tickets.Use(middleware.JWTMiddleware())
+	tickets.Use(middleware.Authorization())
 
 	// Get all tickets (admin only)
 	tickets.Get("/", middleware.AdminOnly(), func(c *fiber.Ctx) error {

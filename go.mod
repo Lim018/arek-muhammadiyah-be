@@ -1,4 +1,4 @@
-module github.com/Lim018/arek-muhammadiyah-be
+module arek-muhammadiyah-be
 
 go 1.25.0
 

@@ -32,19 +32,19 @@ func LoadEnv() {
 	}
 
 	AppConfig = &Config{
-		AppName:    getEnv("APP_NAME", "Organization System"),
-		AppEnv:     getEnv("APP_ENV", "development"),
-		AppPort:    getEnv("APP_PORT", "8080"),
-		DBHost:     getEnv("DB_HOST", "localhost"),
-		DBPort:     getEnv("DB_PORT", "5432"),
-		DBUser:     getEnv("DB_USER", "postgres"),
+		AppName:    getEnv("APP_NAME", ""),
+		AppEnv:     getEnv("APP_ENV", ""),
+		AppPort:    getEnv("APP_PORT", ""),
+		DBHost:     getEnv("DB_HOST", ""),
+		DBPort:     getEnv("DB_PORT", ""),
+		DBUser:     getEnv("DB_USER", ""),
 		DBPassword: getEnv("DB_PASSWORD", ""),
-		DBName:     getEnv("DB_NAME", "organization_db"),
-		DBSSLMode:  getEnv("DB_SSLMODE", "disable"),
-		JWTSecret:  getEnv("JWT_SECRET", "default-secret"),
-		JWTExpire:  getEnv("JWT_EXPIRE", "24h"),
-		LogLevel:   getEnv("LOG_LEVEL", "info"),
-		LogPath:    getEnv("LOG_FILE_PATH", "./logs/app.log"),
+		DBName:     getEnv("DB_NAME", ""),
+		DBSSLMode:  getEnv("DB_SSLMODE", ""),
+		JWTSecret:  getEnv("JWT_SECRET", ""),
+		JWTExpire:  getEnv("JWT_EXPIRE", ""),
+		LogLevel:   getEnv("LOG_LEVEL", ""),
+		LogPath:    getEnv("LOG_FILE_PATH", ""),
 	}
 }
 

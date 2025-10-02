@@ -2,10 +2,10 @@ package main
 
 import (
 	"log"
-	"github.com/Lim018/arek-muhammadiyah-be/config"
-	"github.com/Lim018/arek-muhammadiyah-be/database"
-	"github.com/Lim018/arek-muhammadiyah-be/middleware"
-	"github.com/Lim018/arek-muhammadiyah-be/route"
+	"arek-muhammadiyah-be/config"
+	"arek-muhammadiyah-be/database"
+	"arek-muhammadiyah-be/middleware"
+	"arek-muhammadiyah-be/route"
 )
 
 func main() {

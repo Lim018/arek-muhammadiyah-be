@@ -1,13 +1,13 @@
 package middleware
 
 import (
-	"github.com/Lim018/arek-muhammadiyah-be/helper"
+	"arek-muhammadiyah-be/helper/utils"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func JWTMiddleware() fiber.Handler {
+func Authorization() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
@@ -18,7 +18,7 @@ func JWTMiddleware() fiber.Handler {
 		}
 
 		tokenString := strings.Replace(authHeader, "Bearer ", "", 1)
-		claims, err := helper.ValidateToken(tokenString)
+		claims, err := utils.ValidateToken(tokenString)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error":   true,
