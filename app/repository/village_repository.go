@@ -73,3 +73,52 @@ func (r *VillageRepository) GetWithUserCount() ([]model.VillageWithUserCount, er
 	err := r.db.Raw(query).Scan(&villages).Error
 	return villages, err
 }
+
+// NEW: Get villages with complete stats
+func (r *VillageRepository) GetWithCompleteStats() ([]model.VillageWithStats, error) {
+	var villages []model.VillageWithStats
+
+	query := `
+		SELECT 
+			v.id, 
+			v.name, 
+			v.code, 
+			v.color,
+			COALESCE(members, 0) as members,
+			COALESCE(tickets, 0) as tickets,
+			COALESCE(articles, 0) as articles,
+			COALESCE(app_users, 0) as app_users
+		FROM villages v
+		LEFT JOIN (
+			SELECT village_id, COUNT(*) as members
+			FROM users
+			WHERE village_id IS NOT NULL
+			GROUP BY village_id
+		) u ON v.id = u.village_id
+		LEFT JOIN (
+			SELECT u.village_id, COUNT(t.id) as tickets
+			FROM tickets t
+			JOIN users u ON t.user_id = u.id
+			WHERE u.village_id IS NOT NULL
+			GROUP BY u.village_id
+		) t ON v.id = t.village_id
+		LEFT JOIN (
+			SELECT u.village_id, COUNT(a.id) as articles
+			FROM articles a
+			JOIN users u ON a.user_id = u.id
+			WHERE u.village_id IS NOT NULL
+			GROUP BY u.village_id
+		) a ON v.id = a.village_id
+		LEFT JOIN (
+			SELECT village_id, COUNT(*) as app_users
+			FROM users
+			WHERE village_id IS NOT NULL AND is_mobile = true
+			GROUP BY village_id
+		) au ON v.id = au.village_id
+		WHERE v.is_active = true
+		ORDER BY v.name ASC
+	`
+
+	err := r.db.Raw(query).Scan(&villages).Error
+	return villages, err
+}

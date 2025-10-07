@@ -13,6 +13,7 @@ func SetupVillageRoutes(app *fiber.App) {
 	// Public routes
 	villages.Get("/", villageService.GetAll)
 	villages.Get("/map", villageService.GetWithUserCount)
+	villages.Get("/stats", villageService.GetWithStats)
 
 	// Protected routes
 	villages.Use(middleware.Authorization())
