@@ -37,6 +37,23 @@ func SetupCategoryRoutes(app *fiber.App) {
 		})
 	})
 
+	categories.Get("/:id", func(c *fiber.Ctx) error {
+		id, _ := strconv.ParseUint(c.Params("id"), 10, 32)
+		category, err := categoryRepo.GetByID(uint(id))
+		if err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(model.Response{
+				Success: false,
+				Message: "Category not found",
+			})
+		}
+
+		return c.JSON(model.Response{
+			Success: true,
+			Message: "Category retrieved successfully",
+			Data:    category,
+		})
+	})
+
 	// Protected routes
 	categories.Use(middleware.Authorization())
 	categories.Use(middleware.AdminOnly())
@@ -68,6 +85,69 @@ func SetupCategoryRoutes(app *fiber.App) {
 			Success: true,
 			Message: "Category created successfully",
 			Data:    category,
+		})
+	})
+
+	categories.Put("/:id", func(c *fiber.Ctx) error {
+		id, _ := strconv.ParseUint(c.Params("id"), 10, 32)
+		var req model.CreateCategoryRequest
+		
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+				Success: false,
+				Message: "Invalid request body",
+			})
+		}
+
+		existing, err := categoryRepo.GetByID(uint(id))
+		if err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(model.Response{
+				Success: false,
+				Message: "Category not found",
+			})
+		}
+
+		updateData := &model.Category{
+			Name:        helper.GetStringValue(&req.Name, existing.Name),
+			Description: helper.GetStringPointer(req.Description, existing.Description),
+			Color:       helper.GetStringValue(req.Color, existing.Color),
+			IsActive:    helper.GetBoolValue(req.IsActive, existing.IsActive),
+		}
+
+		if err := categoryRepo.Update(uint(id), updateData); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+				Success: false,
+				Message: err.Error(),
+			})
+		}
+
+		return c.JSON(model.Response{
+			Success: true,
+			Message: "Category updated successfully",
+			Data:    updateData,
+		})
+	})
+
+	categories.Delete("/:id", func(c *fiber.Ctx) error {
+		id, _ := strconv.ParseUint(c.Params("id"), 10, 32)
+		
+		if _, err := categoryRepo.GetByID(uint(id)); err != nil {
+			return c.Status(fiber.StatusNotFound).JSON(model.Response{
+				Success: false,
+				Message: "Category not found",
+			})
+		}
+
+		if err := categoryRepo.Delete(uint(id)); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+				Success: false,
+				Message: err.Error(),
+			})
+		}
+
+		return c.JSON(model.Response{
+			Success: true,
+			Message: "Category deleted successfully",
 		})
 	})
 }

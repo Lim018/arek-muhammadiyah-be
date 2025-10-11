@@ -5,7 +5,6 @@ import (
 	"arek-muhammadiyah-be/app/repository"
 	"arek-muhammadiyah-be/helper"
 	"strconv"
-
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -55,6 +54,23 @@ func (s *VillageService) GetWithUserCount(c *fiber.Ctx) error {
 	return c.JSON(model.Response{
 		Success: true,
 		Message: "Villages with user count retrieved successfully",
+		Data:    villages,
+	})
+}
+
+// NEW: Get villages with complete stats (for map)
+func (s *VillageService) GetWithStats(c *fiber.Ctx) error {
+	villages, err := s.villageRepo.GetWithCompleteStats()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(model.Response{
+		Success: true,
+		Message: "Villages with statistics retrieved successfully",
 		Data:    villages,
 	})
 }

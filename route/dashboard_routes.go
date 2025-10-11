@@ -26,6 +26,12 @@ func SetupDashboardRoutes(app *fiber.App) {
 		ticketStatusCounts, _ := ticketRepo.GetCountByStatus()
 		cardStatusStats, _ := userRepo.GetCardStatusStats()
 
+		// Calculate total tickets
+		totalTicketsSum := int64(0)
+		for _, count := range ticketStatusCounts {
+			totalTicketsSum += count
+		}
+
 		stats := model.DashboardStats{
 			TotalUsers:    totalUsers,
 			TotalArticles: totalArticles,
@@ -37,7 +43,7 @@ func SetupDashboardRoutes(app *fiber.App) {
 				InProgress: ticketStatusCounts[model.TicketStatusInProgress],
 				Resolved:   ticketStatusCounts[model.TicketStatusResolved],
 				Closed:     ticketStatusCounts[model.TicketStatusClosed],
-				Total:      totalTickets,
+				Total:      totalTicketsSum,
 			},
 			CardStatusStats: cardStatusStats,
 		}

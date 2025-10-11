@@ -36,6 +36,20 @@ func (r *CategoryRepository) GetAll(limit, offset int, activeOnly bool) ([]model
 	return categories, total, err
 }
 
+func (r *CategoryRepository) GetByID(id uint) (*model.Category, error) {
+	var category model.Category
+	err := r.db.First(&category, id).Error
+	return &category, err
+}
+
 func (r *CategoryRepository) Create(category *model.Category) error {
 	return r.db.Create(category).Error
+}
+
+func (r *CategoryRepository) Update(id uint, category *model.Category) error {
+	return r.db.Where("id = ?", id).Updates(category).Error
+}
+
+func (r *CategoryRepository) Delete(id uint) error {
+	return r.db.Delete(&model.Category{}, id).Error
 }
