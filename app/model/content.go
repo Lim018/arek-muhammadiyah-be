@@ -7,7 +7,7 @@ type Category struct {
 	Name        string    `json:"name" gorm:"not null"`
 	Description *string   `json:"description"`
 	Color       string    `json:"color" gorm:"default:'#10B981'"`
-	Icon        string    `json:"icon" `
+	Icon        string    `json:"icon" gorm:"default:'circle'"`
 	IsActive    bool      `json:"is_active" gorm:"default:true"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
