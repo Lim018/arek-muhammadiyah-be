@@ -3,15 +3,16 @@ package database
 import (
 	"log"
 	"arek-muhammadiyah-be/app/model"
+	"golang.org/x/crypto/bcrypt"
 )
 
-// RunSeeders seeds Roles, Categories, Villages, and Users
+
 func RunSeeders() {
 	if DB == nil {
 		log.Fatal("Database not connected")
 	}
 
-	// === Roles ===
+
 	adminDesc := "Administrator dengan akses penuh ke sistem"
 	operatorDesc := "Operator sensus yang menginput data anggota"
 	memberDesc := "Anggota organisasi"
@@ -54,16 +55,26 @@ func RunSeeders() {
 	}
 
 	// === Users ===
-	users := []model.User{
-		{Name: "Budi Santoso", Password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", Telp: ptr("081234567890"), RoleID: uintPtr(1), VillageID: uintPtr(1), NIK: ptr("3578011234567890"), Address: ptr("Jl. Gubeng Pojok No. 15, Surabaya"), CardStatus: "delivered"},
-		{Name: "Siti Nurhaliza", Password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", Telp: ptr("081234567891"), RoleID: uintPtr(1), VillageID: uintPtr(2), NIK: ptr("3578012234567891"), Address: ptr("Jl. Airlangga No. 45, Surabaya"), CardStatus: "delivered"},
-		{Name: "Ahmad Fauzi", Password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", Telp: ptr("081234567892"), RoleID: uintPtr(2), VillageID: uintPtr(3), NIK: ptr("3578013234567892"), Address: ptr("Jl. Wonokromo No. 78, Surabaya"), CardStatus: "approved"},
-		{Name: "Dewi Lestari", Password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", Telp: ptr("081234567893"), RoleID: uintPtr(2), VillageID: uintPtr(4), NIK: ptr("3578014234567893"), Address: ptr("Jl. Sawahan No. 23, Surabaya"), CardStatus: "printed"},
-		{Name: "Joko Widodo", Password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", Telp: ptr("081234567894"), RoleID: uintPtr(3), VillageID: uintPtr(1), NIK: ptr("3578015234567894"), Address: ptr("Jl. Gubeng Kertajaya No. 10, Surabaya"), CardStatus: "delivered"},
-	}
-	for _, u := range users {
-		DB.FirstOrCreate(&u, model.User{NIK: u.NIK})
-	}
+		// === Users ===
+		users := []model.User{
+			{Name: "Budi Santoso", Password: "password123", Telp: ptr("081234567890"), RoleID: uintPtr(1), VillageID: uintPtr(1), NIK: ptr("3578011234567890"), Address: ptr("Jl. Gubeng Pojok No. 15, Surabaya"), CardStatus: "delivered"},
+			{Name: "Siti Nurhaliza", Password: "password123", Telp: ptr("081234567891"), RoleID: uintPtr(1), VillageID: uintPtr(2), NIK: ptr("3578012234567891"), Address: ptr("Jl. Airlangga No. 45, Surabaya"), CardStatus: "delivered"},
+			{Name: "Ahmad Fauzi", Password: "password123", Telp: ptr("081234567892"), RoleID: uintPtr(2), VillageID: uintPtr(3), NIK: ptr("3578013234567892"), Address: ptr("Jl. Wonokromo No. 78, Surabaya"), CardStatus: "approved"},
+			{Name: "Dewi Lestari", Password: "password123", Telp: ptr("081234567893"), RoleID: uintPtr(2), VillageID: uintPtr(4), NIK: ptr("3578014234567893"), Address: ptr("Jl. Sawahan No. 23, Surabaya"), CardStatus: "printed"},
+			{Name: "Joko Widodo", Password: "password123", Telp: ptr("081234567894"), RoleID: uintPtr(3), VillageID: uintPtr(1), NIK: ptr("3578015234567894"), Address: ptr("Jl. Gubeng Kertajaya No. 10, Surabaya"), CardStatus: "delivered"},
+		}
+	
+		for _, u := range users {
+			// hash password dulu sebelum simpan
+			hashed, err := bcrypt.GenerateFromPassword([]byte(u.Password), 10)
+			if err != nil {
+				log.Printf("Gagal hash password untuk user %s: %v", u.Name, err)
+				continue
+			}
+			u.Password = string(hashed)
+	
+			DB.FirstOrCreate(&u, model.User{NIK: u.NIK})
+		}
 
 	log.Println("All seeders completed successfully")
 }

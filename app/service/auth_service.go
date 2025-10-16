@@ -4,6 +4,7 @@ import (
 	"arek-muhammadiyah-be/app/model"
 	"arek-muhammadiyah-be/app/repository"
 	"arek-muhammadiyah-be/helper/utils"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -42,14 +43,14 @@ func (s *AuthService) Login(c *fiber.Ctx) error {
         Message: "Invalid credentials",
     })
 }
-
-	token, err := utils.GenerateToken(user.ID, user.RoleID)
+	token, err := utils.GenerateToken(fmt.Sprintf("%d", user.ID), user.RoleID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
 			Success: false,
 			Message: "Failed to generate token",
 		})
 	}
+	
 
 	return c.JSON(model.Response{
 		Success: true,
@@ -81,7 +82,6 @@ func (s *AuthService) Register(c *fiber.Ctx) error {
 	}
 
 	user := &model.User{
-		ID:        req.ID,
 		Name:      req.Name,
 		Password:  hashedPassword,
 		RoleID:    req.RoleID,

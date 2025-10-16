@@ -4,11 +4,13 @@ import (
 	"log"
 
 	"arek-muhammadiyah-be/database"
+	"arek-muhammadiyah-be/config"
 )
 
 func main() {
 	// Hubungkan ke database
 	log.Println("🔌 Connecting to database...")
+	config.LoadEnv()
 	database.ConnectDB()
 
 	// Jalankan migrasi

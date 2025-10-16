@@ -78,7 +78,6 @@ func (s *UserService) CreateUser(c *fiber.Ctx) error {
 	}
 
 	user := &model.User{
-		ID:         req.ID,
 		Name:       req.Name,
 		Password:   hashedPassword,
 		Telp:       req.Telp,
@@ -205,7 +204,6 @@ func (s *UserService) BulkCreate(c *fiber.Ctx) error {
 		}
 
 		u := &model.User{
-			ID:         userReq.ID,
 			Name:       userReq.Name,
 			Password:   hashedPassword,
 			Telp:       userReq.Telp,
