@@ -288,3 +288,26 @@ func (s *UserService) GetByCardStatus(c *fiber.Ctx) error {
 		Pagination: pagination,
 	})
 }
+
+func (s *UserService) GetMobileUsers(c *fiber.Ctx) error {
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	offset := (page - 1) * limit
+
+	users, total, err := s.userRepo.GetMobileUsers(limit, offset)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: err.Error(),
+		})
+	}
+
+	pagination := helper.CreatePagination(int64(page), int64(limit), total)
+
+	return c.JSON(model.PaginatedResponse{
+		Success:    true,
+		Message:    "Mobile users retrieved successfully",
+		Data:       users,
+		Pagination: pagination,
+	})
+}

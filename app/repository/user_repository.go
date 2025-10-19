@@ -138,3 +138,18 @@ func (r *UserRepository) GetCardStatusStats() (map[string]int64, error) {
 
 	return stats, nil
 }
+
+func (r *UserRepository) GetMobileUsers(limit, offset int) ([]model.User, int64, error) {
+	var users []model.User
+	var total int64
+
+	err := r.db.Model(&model.User{}).Where("is_mobile = ?", true).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = r.db.Preload("Role").Preload("Village").
+		Where("is_mobile = ?", true).
+		Limit(limit).Offset(offset).Find(&users).Error
+	return users, total, err
+}
