@@ -25,7 +25,7 @@ func (r *UserRepository) GetAll(limit, offset int) ([]model.User, int64, error) 
 		return nil, 0, err
 	}
 
-	err = r.db.Preload("Role").Preload("Village").
+	err = r.db.Preload("Role").Preload("SubVillage").Preload("SubVillage.Village").
 		Limit(limit).Offset(offset).Find(&users).Error
 
 	return users, total, err
@@ -33,7 +33,7 @@ func (r *UserRepository) GetAll(limit, offset int) ([]model.User, int64, error) 
 
 func (r *UserRepository) GetByID(id string) (*model.User, error) {
 	var user model.User
-	err := r.db.Preload("Role").Preload("Village").
+	err := r.db.Preload("Role").Preload("SubVillage").Preload("SubVillage.Village").
 		First(&user, "id = ?", id).Error
 	return &user, err
 }
@@ -50,16 +50,36 @@ func (r *UserRepository) Delete(id string) error {
 	return r.db.Delete(&model.User{}, "id = ?", id).Error
 }
 
-func (r *UserRepository) GetByVillage(villageID uint, limit, offset int) ([]model.User, int64, error) {
+func (r *UserRepository) GetBySubVillage(subVillageID uint, limit, offset int) ([]model.User, int64, error) {
 	var users []model.User
 	var total int64
 
-	err := r.db.Model(&model.User{}).Where("village_id = ?", villageID).Count(&total).Error
+	err := r.db.Model(&model.User{}).Where("sub_village_id = ?", subVillageID).Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
 
-	err = r.db.Preload("Role").Where("village_id = ?", villageID).
+	err = r.db.Preload("Role").Preload("SubVillage").Preload("SubVillage.Village").
+		Where("sub_village_id = ?", subVillageID).
+		Limit(limit).Offset(offset).Find(&users).Error
+	return users, total, err
+}
+
+func (r *UserRepository) GetByVillage(villageID uint, limit, offset int) ([]model.User, int64, error) {
+	var users []model.User
+	var total int64
+
+	err := r.db.Model(&model.User{}).
+		Joins("JOIN sub_villages ON users.sub_village_id = sub_villages.id").
+		Where("sub_villages.village_id = ?", villageID).
+		Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = r.db.Preload("Role").Preload("SubVillage").Preload("SubVillage.Village").
+		Joins("JOIN sub_villages ON users.sub_village_id = sub_villages.id").
+		Where("sub_villages.village_id = ?", villageID).
 		Limit(limit).Offset(offset).Find(&users).Error
 	return users, total, err
 }
@@ -98,45 +118,13 @@ func (r *UserRepository) GetWithStats(limit, offset int) ([]model.UserWithStats,
 	`
 
 	err = r.db.Raw(query, limit, offset).Scan(&users).Error
+	
+	// Calculate age for each user
+	for i := range users {
+		users[i].Age = users[i].GetAge()
+	}
+	
 	return users, total, err
-}
-
-func (r *UserRepository) GetByCardStatus(status string, limit, offset int) ([]model.User, int64, error) {
-	var users []model.User
-	var total int64
-
-	err := r.db.Model(&model.User{}).Where("card_status = ?", status).Count(&total).Error
-	if err != nil {
-		return nil, 0, err
-	}
-
-	err = r.db.Preload("Role").Preload("Village").
-		Where("card_status = ?", status).
-		Limit(limit).Offset(offset).Find(&users).Error
-	return users, total, err
-}
-
-func (r *UserRepository) GetCardStatusStats() (map[string]int64, error) {
-	var results []struct {
-		CardStatus string
-		Count      int64
-	}
-
-	err := r.db.Model(&model.User{}).
-		Select("card_status, count(*) as count").
-		Group("card_status").
-		Scan(&results).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	stats := make(map[string]int64)
-	for _, result := range results {
-		stats[result.CardStatus] = result.Count
-	}
-
-	return stats, nil
 }
 
 func (r *UserRepository) GetMobileUsers(limit, offset int) ([]model.User, int64, error) {
@@ -148,8 +136,23 @@ func (r *UserRepository) GetMobileUsers(limit, offset int) ([]model.User, int64,
 		return nil, 0, err
 	}
 
-	err = r.db.Preload("Role").Preload("Village").
+	err = r.db.Preload("Role").Preload("SubVillage").Preload("SubVillage.Village").
 		Where("is_mobile = ?", true).
+		Limit(limit).Offset(offset).Find(&users).Error
+	return users, total, err
+}
+
+func (r *UserRepository) GetByGender(gender string, limit, offset int) ([]model.User, int64, error) {
+	var users []model.User
+	var total int64
+
+	err := r.db.Model(&model.User{}).Where("gender = ?", gender).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = r.db.Preload("Role").Preload("SubVillage").Preload("SubVillage.Village").
+		Where("gender = ?", gender).
 		Limit(limit).Offset(offset).Find(&users).Error
 	return users, total, err
 }

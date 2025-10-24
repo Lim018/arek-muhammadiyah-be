@@ -78,15 +78,17 @@ func (s *UserService) CreateUser(c *fiber.Ctx) error {
 	}
 
 	user := &model.User{
-		Name:       req.Name,
-		Password:   hashedPassword,
-		Telp:       req.Telp,
-		RoleID:     req.RoleID,
-		VillageID:  req.VillageID,
-		NIK:        req.NIK,
-		Address:    req.Address,
-		CardStatus: helper.GetStringValue(req.CardStatus, "pending"),
-		IsMobile:   helper.GetBoolValue(req.IsMobile, false),
+		Name:         req.Name,
+		Password:     hashedPassword,
+		BirthDate:    req.BirthDate,
+		Telp:         req.Telp,
+		Gender:       req.Gender,
+		Job:          req.Job,
+		RoleID:       req.RoleID,
+		SubVillageID: req.SubVillageID,
+		NIK:          req.NIK,
+		Address:      req.Address,
+		IsMobile:     helper.GetBoolValue(req.IsMobile, false),
 	}
 
 	if err := s.userRepo.Create(user); err != nil {
@@ -122,13 +124,15 @@ func (s *UserService) Update(c *fiber.Ctx) error {
 	}
 
 	updateData := &model.User{
-		Name:       helper.GetStringValue(req.Name, existing.Name),
-		Telp:       helper.GetStringPointer(req.Telp, existing.Telp),
-		RoleID:     helper.GetUintPointer(req.RoleID, existing.RoleID),
-		VillageID:  helper.GetUintPointer(req.VillageID, existing.VillageID),
-		NIK:        helper.GetStringPointer(req.NIK, existing.NIK),
-		Address:    helper.GetStringPointer(req.Address, existing.Address),
-		CardStatus: helper.GetStringValue(req.CardStatus, existing.CardStatus),
+		Name:         helper.GetStringValue(req.Name, existing.Name),
+		BirthDate:    req.BirthDate,
+		Telp:         helper.GetStringPointer(req.Telp, existing.Telp),
+		Gender:       helper.GetStringPointer(req.Gender, existing.Gender),
+		Job:          helper.GetStringPointer(req.Job, existing.Job),
+		RoleID:       helper.GetUintPointer(req.RoleID, existing.RoleID),
+		SubVillageID: helper.GetUintPointer(req.SubVillageID, existing.SubVillageID),
+		NIK:          helper.GetStringPointer(req.NIK, existing.NIK),
+		Address:      helper.GetStringPointer(req.Address, existing.Address),
 	}
 
 	if err := s.userRepo.Update(id, updateData); err != nil {
@@ -204,15 +208,17 @@ func (s *UserService) BulkCreate(c *fiber.Ctx) error {
 		}
 
 		u := &model.User{
-			Name:       userReq.Name,
-			Password:   hashedPassword,
-			Telp:       userReq.Telp,
-			RoleID:     userReq.RoleID,
-			VillageID:  userReq.VillageID,
-			NIK:        userReq.NIK,
-			Address:    userReq.Address,
-			CardStatus: helper.GetStringValue(userReq.CardStatus, "pending"),
-			IsMobile:   helper.GetBoolValue(userReq.IsMobile, false),
+			Name:         userReq.Name,
+			Password:     hashedPassword,
+			BirthDate:    userReq.BirthDate,
+			Telp:         userReq.Telp,
+			Gender:       userReq.Gender,
+			Job:          userReq.Job,
+			RoleID:       userReq.RoleID,
+			SubVillageID: userReq.SubVillageID,
+			NIK:          userReq.NIK,
+			Address:      userReq.Address,
+			IsMobile:     helper.GetBoolValue(userReq.IsMobile, false),
 		}
 
 		if err := s.userRepo.Create(u); err != nil {
@@ -265,13 +271,13 @@ func (s *UserService) GetByVillage(c *fiber.Ctx) error {
 	})
 }
 
-func (s *UserService) GetByCardStatus(c *fiber.Ctx) error {
-	status := c.Params("status")
+func (s *UserService) GetBySubVillage(c *fiber.Ctx) error {
+	subVillageID, _ := strconv.ParseUint(c.Params("subVillageId"), 10, 32)
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 	offset := (page - 1) * limit
 
-	users, total, err := s.userRepo.GetByCardStatus(status, limit, offset)
+	users, total, err := s.userRepo.GetBySubVillage(uint(subVillageID), limit, offset)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
 			Success: false,
@@ -307,6 +313,30 @@ func (s *UserService) GetMobileUsers(c *fiber.Ctx) error {
 	return c.JSON(model.PaginatedResponse{
 		Success:    true,
 		Message:    "Mobile users retrieved successfully",
+		Data:       users,
+		Pagination: pagination,
+	})
+}
+
+func (s *UserService) GetByGender(c *fiber.Ctx) error {
+	gender := c.Params("gender")
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	offset := (page - 1) * limit
+
+	users, total, err := s.userRepo.GetByGender(gender, limit, offset)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: err.Error(),
+		})
+	}
+
+	pagination := helper.CreatePagination(int64(page), int64(limit), total)
+
+	return c.JSON(model.PaginatedResponse{
+		Success:    true,
+		Message:    "Users retrieved successfully",
 		Data:       users,
 		Pagination: pagination,
 	})

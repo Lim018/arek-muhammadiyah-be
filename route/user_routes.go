@@ -18,5 +18,6 @@ func SetupUserRoutes(app *fiber.App) {
 	users.Delete("/:id", middleware.AdminOnly(), userService.Delete)
 	users.Post("/bulk", middleware.AdminOnly(), userService.BulkCreate)
 	users.Get("/village/:villageId", userService.GetByVillage)
-	users.Get("/card-status/:status", middleware.AdminOnly(), userService.GetByCardStatus)
+	users.Get("/sub-village/:subVillageId", userService.GetBySubVillage)
+	users.Get("/gender/:gender", userService.GetByGender)
 }

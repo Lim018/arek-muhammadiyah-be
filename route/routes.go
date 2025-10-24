@@ -19,6 +19,7 @@ func Setup(app *fiber.App) {
 	SetupArticleRoutes(app)
 	SetupTicketRoutes(app)
 	SetupVillageRoutes(app)
+	SetupSubVillageRoutes(app) 
 	SetupDocumentRoutes(app)
 	SetupCategoryRoutes(app)
 	SetupDashboardRoutes(app)

@@ -1,39 +1,45 @@
 package model
 
+import "time"
+
 type LoginRequest struct {
 	ID       string `json:"id" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }
 
 type CreateUserRequest struct {
-	ID         string  `json:"id" validate:"required"`
-	Name       string  `json:"name" validate:"required"`
-	Password   string  `json:"password" validate:"required,min=6"`
-	Telp       *string `json:"telp"`
-	RoleID     *uint   `json:"role_id"`
-	VillageID  *uint   `json:"village_id"`
-	NIK        *string `json:"nik"`
-	Address    *string `json:"address"`
-	CardStatus *string `json:"card_status"`
-	IsMobile   *bool   `json:"is_mobile"`
+	ID           string     `json:"id" validate:"required"`
+	Name         string     `json:"name" validate:"required"`
+	Password     string     `json:"password" validate:"required,min=6"`
+	BirthDate    *time.Time `json:"birth_date"`
+	Telp         *string    `json:"telp"`
+	Gender       *string    `json:"gender"`
+	Job          *string    `json:"job"`
+	RoleID       *uint      `json:"role_id"`
+	SubVillageID *uint      `json:"sub_village_id"`
+	NIK          *string    `json:"nik"`
+	Address      *string    `json:"address"`
+	IsMobile     *bool      `json:"is_mobile"`
 }
 
 type UpdateUserRequest struct {
-	Name       *string `json:"name"`
-	Telp       *string `json:"telp"`
-	RoleID     *uint   `json:"role_id"`
-	VillageID  *uint   `json:"village_id"`
-	NIK        *string `json:"nik"`
-	Address    *string `json:"address"`
-	CardStatus *string `json:"card_status"`
+	Name         *string    `json:"name"`
+	BirthDate    *time.Time `json:"birth_date"`
+	Telp         *string    `json:"telp"`
+	Gender       *string    `json:"gender"`
+	Job          *string    `json:"job"`
+	RoleID       *uint      `json:"role_id"`
+	SubVillageID *uint      `json:"sub_village_id"`
+	NIK          *string    `json:"nik"`
+	Address      *string    `json:"address"`
 }
 
 type CreateArticleRequest struct {
-	CategoryID    *uint   `json:"category_id"`
-	Title         string  `json:"title" validate:"required"`
-	Content       string  `json:"content" validate:"required"`
-	FeatureImage  *string `json:"feature_image"`
-	IsPublished   *bool   `json:"is_published"`
+	CategoryID   *uint   `json:"category_id"`
+	Title        string  `json:"title" validate:"required"`
+	Content      string  `json:"content" validate:"required"`
+	FeatureImage *string `json:"feature_image"`
+	IsPublished  *bool   `json:"is_published"`
 }
 
 type CreateTicketRequest struct {
@@ -61,6 +67,14 @@ type CreateVillageRequest struct {
 	Code        string  `json:"code" validate:"required"`
 	Description *string `json:"description"`
 	Color       *string `json:"color"`
+	IsActive    *bool   `json:"is_active"`
+}
+
+type CreateSubVillageRequest struct {
+	VillageID   uint    `json:"village_id" validate:"required"`
+	Name        string  `json:"name" validate:"required"`
+	Code        string  `json:"code" validate:"required"`
+	Description *string `json:"description"`
 	IsActive    *bool   `json:"is_active"`
 }
 

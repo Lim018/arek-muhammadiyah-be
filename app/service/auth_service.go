@@ -85,7 +85,7 @@ func (s *AuthService) Register(c *fiber.Ctx) error {
 		Name:      req.Name,
 		Password:  hashedPassword,
 		RoleID:    req.RoleID,
-		VillageID: req.VillageID,
+		SubVillageID: req.SubVillageID,
 		NIK:       req.NIK,
 		Address:   req.Address,
 	}

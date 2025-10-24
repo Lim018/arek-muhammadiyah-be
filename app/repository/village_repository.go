@@ -38,7 +38,7 @@ func (r *VillageRepository) GetAll(limit, offset int, activeOnly bool) ([]model.
 
 func (r *VillageRepository) GetByID(id uint) (*model.Village, error) {
 	var village model.Village
-	err := r.db.First(&village, id).Error
+	err := r.db.Preload("SubVillages").First(&village, id).Error
 	return &village, err
 }
 
@@ -61,10 +61,11 @@ func (r *VillageRepository) GetWithUserCount() ([]model.VillageWithUserCount, er
 		SELECT v.*, COALESCE(user_count, 0) as total_users
 		FROM villages v
 		LEFT JOIN (
-			SELECT village_id, COUNT(*) as user_count 
-			FROM users 
-			WHERE village_id IS NOT NULL
-			GROUP BY village_id
+			SELECT sv.village_id, COUNT(u.id) as user_count 
+			FROM users u
+			JOIN sub_villages sv ON u.sub_village_id = sv.id
+			WHERE u.sub_village_id IS NOT NULL
+			GROUP BY sv.village_id
 		) u ON v.id = u.village_id
 		WHERE v.is_active = true
 		ORDER BY v.name ASC
@@ -74,7 +75,6 @@ func (r *VillageRepository) GetWithUserCount() ([]model.VillageWithUserCount, er
 	return villages, err
 }
 
-// NEW: Get villages with complete stats
 func (r *VillageRepository) GetWithCompleteStats() ([]model.VillageWithStats, error) {
 	var villages []model.VillageWithStats
 
@@ -87,34 +87,45 @@ func (r *VillageRepository) GetWithCompleteStats() ([]model.VillageWithStats, er
 			COALESCE(members, 0) as members,
 			COALESCE(tickets, 0) as tickets,
 			COALESCE(articles, 0) as articles,
-			COALESCE(app_users, 0) as app_users
+			COALESCE(app_users, 0) as app_users,
+			COALESCE(sub_village_count, 0) as sub_villages
 		FROM villages v
 		LEFT JOIN (
-			SELECT village_id, COUNT(*) as members
-			FROM users
-			WHERE village_id IS NOT NULL
-			GROUP BY village_id
+			SELECT sv.village_id, COUNT(u.id) as members
+			FROM users u
+			JOIN sub_villages sv ON u.sub_village_id = sv.id
+			WHERE u.sub_village_id IS NOT NULL
+			GROUP BY sv.village_id
 		) u ON v.id = u.village_id
 		LEFT JOIN (
-			SELECT u.village_id, COUNT(t.id) as tickets
+			SELECT sv.village_id, COUNT(t.id) as tickets
 			FROM tickets t
 			JOIN users u ON t.user_id = u.id
-			WHERE u.village_id IS NOT NULL
-			GROUP BY u.village_id
+			JOIN sub_villages sv ON u.sub_village_id = sv.id
+			WHERE u.sub_village_id IS NOT NULL
+			GROUP BY sv.village_id
 		) t ON v.id = t.village_id
 		LEFT JOIN (
-			SELECT u.village_id, COUNT(a.id) as articles
+			SELECT sv.village_id, COUNT(a.id) as articles
 			FROM articles a
 			JOIN users u ON a.user_id = u.id
-			WHERE u.village_id IS NOT NULL
-			GROUP BY u.village_id
+			JOIN sub_villages sv ON u.sub_village_id = sv.id
+			WHERE u.sub_village_id IS NOT NULL
+			GROUP BY sv.village_id
 		) a ON v.id = a.village_id
 		LEFT JOIN (
-			SELECT village_id, COUNT(*) as app_users
-			FROM users
-			WHERE village_id IS NOT NULL AND is_mobile = true
-			GROUP BY village_id
+			SELECT sv.village_id, COUNT(u.id) as app_users
+			FROM users u
+			JOIN sub_villages sv ON u.sub_village_id = sv.id
+			WHERE u.sub_village_id IS NOT NULL AND u.is_mobile = true
+			GROUP BY sv.village_id
 		) au ON v.id = au.village_id
+		LEFT JOIN (
+			SELECT village_id, COUNT(*) as sub_village_count
+			FROM sub_villages
+			WHERE is_active = true
+			GROUP BY village_id
+		) sv ON v.id = sv.village_id
 		WHERE v.is_active = true
 		ORDER BY v.name ASC
 	`

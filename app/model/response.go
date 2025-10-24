@@ -22,6 +22,7 @@ type Pagination struct {
 
 type UserWithStats struct {
 	User
+	Age            int `json:"age"`
 	TotalArticles  int `json:"total_articles"`
 	TotalTickets   int `json:"total_tickets"`
 	TotalDocuments int `json:"total_documents"`
@@ -37,12 +38,12 @@ type TicketStats struct {
 }
 
 type DashboardStats struct {
-	TotalUsers      int64            `json:"total_users"`
-	TotalArticles   int64            `json:"total_articles"`
-	TotalTickets    int64            `json:"total_tickets"`
-	TotalVillages   int64            `json:"total_villages"`
-	TicketStats     TicketStats      `json:"ticket_stats"`
-	CardStatusStats map[string]int64 `json:"card_status_stats"`
+	TotalUsers       int64 `json:"total_users"`
+	TotalArticles    int64 `json:"total_articles"`
+	TotalTickets     int64 `json:"total_tickets"`
+	TotalVillages    int64 `json:"total_villages"`
+	TotalSubVillages int64 `json:"total_sub_villages"`
+	TicketStats      TicketStats `json:"ticket_stats"`
 }
 
 type VillageWithUserCount struct {
@@ -50,14 +51,32 @@ type VillageWithUserCount struct {
 	TotalUsers int `json:"total_users"`
 }
 
-// NEW: Village with complete stats
+type SubVillageWithUserCount struct {
+	SubVillage
+	TotalUsers int `json:"total_users"`
+}
+
+// Village with complete stats
 type VillageWithStats struct {
-	ID       uint   `json:"id"`
-	Name     string `json:"name"`
-	Code     string `json:"code"`
-	Color    string `json:"color"`
-	Members  int    `json:"members"`
-	Tickets  int    `json:"tickets"`
-	Articles int    `json:"articles"`
-	AppUsers int    `json:"appUsers"`
+	ID           uint   `json:"id"`
+	Name         string `json:"name"`
+	Code         string `json:"code"`
+	Color        string `json:"color"`
+	Members      int    `json:"members"`
+	Tickets      int    `json:"tickets"`
+	Articles     int    `json:"articles"`
+	AppUsers     int    `json:"app_users"`
+	SubVillages  int    `json:"sub_villages"`
+}
+
+// SubVillage with complete stats
+type SubVillageWithStats struct {
+	ID         uint   `json:"id"`
+	VillageID  uint   `json:"village_id"`
+	Name       string `json:"name"`
+	Code       string `json:"code"`
+	Members    int    `json:"members"`
+	Tickets    int    `json:"tickets"`
+	Articles   int    `json:"articles"`
+	AppUsers   int    `json:"app_users"`
 }
