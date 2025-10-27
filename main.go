@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"arek-muhammadiyah-be/app/service"
 	"arek-muhammadiyah-be/config"
 	"arek-muhammadiyah-be/database"
 	"arek-muhammadiyah-be/middleware"
@@ -79,12 +80,32 @@ func startServer() {
 	// Setup middleware
 	middleware.Setup(app)
 
-	// Setup routes
-	route.Setup(app)
+	// Initialize Wilayah Service and load data
+	wilayahService := service.NewWilayahService()
+	wilayahDataPath := os.Getenv("WILAYAH_DATA_PATH")
+	if wilayahDataPath == "" {
+		wilayahDataPath = "./data/wilayah.json" // default path
+	}
+	
+	log.Println("📍 Loading wilayah data from:", wilayahDataPath)
+	if err := wilayahService.LoadWilayahData(wilayahDataPath); err != nil {
+		log.Printf("⚠️  Warning: Failed to load wilayah data: %v\n", err)
+		log.Println("   Server will continue but wilayah features will not work")
+	} else {
+		log.Println("✅ Wilayah data loaded successfully")
+	}
+
+	// Setup routes (pass wilayahService ke route setup)
+	route.Setup(app, wilayahService)
 
 	// Start server
-	log.Println("✅ Server is running on http://localhost:8080")
-	log.Fatal(app.Listen("0.0.0.0:8080"))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	
+	log.Printf("✅ Server is running on http://localhost:%s\n", port)
+	log.Fatal(app.Listen("0.0.0.0:" + port))
 }
 
 func showHelp() {
@@ -121,10 +142,20 @@ EXAMPLES:
     # Show help
     go run main.go -help
 
+ENVIRONMENT VARIABLES:
+    WILAYAH_DATA_PATH    Path to wilayah.json file (default: ./data/wilayah.json)
+    PORT                 Server port (default: 8080)
+    DB_HOST              Database host
+    DB_PORT              Database port
+    DB_USER              Database user
+    DB_PASSWORD          Database password
+    DB_NAME              Database name
+
 NOTES:
     - Use -fresh flag with CAUTION as it will DELETE ALL DATA
     - Always backup your database before running -fresh
     - Run migrations before seeders for fresh installations
+    - Wilayah data must be loaded for location features to work
 
 ════════════════════════════════════════════════════════════════
 `)

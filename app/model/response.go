@@ -38,45 +38,50 @@ type TicketStats struct {
 }
 
 type DashboardStats struct {
-	TotalUsers       int64 `json:"total_users"`
-	TotalArticles    int64 `json:"total_articles"`
-	TotalTickets     int64 `json:"total_tickets"`
-	TotalVillages    int64 `json:"total_villages"`
-	TotalSubVillages int64 `json:"total_sub_villages"`
-	TicketStats      TicketStats `json:"ticket_stats"`
+	TotalUsers    int64                  `json:"total_users"`
+	TotalArticles int64                  `json:"total_articles"`
+	TotalTickets  int64                  `json:"total_tickets"`
+	TicketStats   TicketStats            `json:"ticket_stats"`
+	WilayahStats  map[string]interface{} `json:"wilayah_stats"`
+	GenderStats   map[string]int64       `json:"gender_stats"`
 }
 
-type VillageWithUserCount struct {
-	Village
-	TotalUsers int `json:"total_users"`
+// Wilayah statistics
+type CityStats struct {
+	CityID       string `json:"city_id"`
+	CityName     string `json:"city_name"`
+	TotalMembers int64  `json:"total_members"`
+	TotalMale    int64  `json:"total_male"`
+	TotalFemale  int64  `json:"total_female"`
+	TotalMobile  int64  `json:"total_mobile"`
 }
 
-type SubVillageWithUserCount struct {
-	SubVillage
-	TotalUsers int `json:"total_users"`
+type DistrictStats struct {
+	DistrictID   string `json:"district_id"`
+	DistrictName string `json:"district_name"`
+	CityID       string `json:"city_id"`
+	CityName     string `json:"city_name"`
+	TotalMembers int64  `json:"total_members"`
+	TotalMale    int64  `json:"total_male"`
+	TotalFemale  int64  `json:"total_female"`
 }
 
-// Village with complete stats
-type VillageWithStats struct {
-	ID           uint   `json:"id"`
-	Name         string `json:"name"`
-	Code         string `json:"code"`
-	Color        string `json:"color"`
-	Members      int    `json:"members"`
-	Tickets      int    `json:"tickets"`
-	Articles     int    `json:"articles"`
-	AppUsers     int    `json:"app_users"`
-	SubVillages  int    `json:"sub_villages"`
+type VillageStats struct {
+	VillageID    string `json:"village_id"`
+	VillageName  string `json:"village_name"`
+	DistrictID   string `json:"district_id"`
+	DistrictName string `json:"district_name"`
+	CityID       string `json:"city_id"`
+	CityName     string `json:"city_name"`
+	TotalMembers int64  `json:"total_members"`
 }
 
-// SubVillage with complete stats
-type SubVillageWithStats struct {
-	ID         uint   `json:"id"`
-	VillageID  uint   `json:"village_id"`
-	Name       string `json:"name"`
-	Code       string `json:"code"`
-	Members    int    `json:"members"`
-	Tickets    int    `json:"tickets"`
-	Articles   int    `json:"articles"`
-	AppUsers   int    `json:"app_users"`
+// Wilayah info response (enriched from JSON)
+type WilayahInfo struct {
+	VillageID    string `json:"village_id"`
+	VillageName  string `json:"village_name"`
+	DistrictID   string `json:"district_id"`
+	DistrictName string `json:"district_name"`
+	CityID       string `json:"city_id"`
+	CityName     string `json:"city_name"`
 }
