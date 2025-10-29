@@ -94,39 +94,38 @@ func showHelp() {
 ╚════════════════════════════════════════════════════════════════╝
 
 USAGE:
-    go run main.go [flags]
+	go run main.go [flags]
 
 FLAGS:
-    -migrate        Run database migrations
-    -seed           Run database seeders
-    -fresh          Drop all tables and run fresh migrations (⚠️  DELETES ALL DATA)
-    -help           Show this help message
+	-migrate        Run database migrations
+	-seed           Run database seeders
+	-fresh          Drop all tables and run fresh migrations (⚠️  DELETES ALL DATA)
+	-help           Show this help message
 
 EXAMPLES:
-    # Start server normally
-    go run main.go
+	# Start server normally
+	go run main.go
 
-    # Run migrations only
-    go run main.go -migrate
+	# Run migrations only
+	go run main.go -migrate
 
-    # Run migrations and seed data
-    go run main.go -migrate -seed
+	# Run migrations and seed data
+	go run main.go -migrate -seed
 
-    # Run seeders only (tables must exist)
-    go run main.go -seed
+	# Run seeders only (tables must exist)
+	go run main.go -seed
 
-    # Fresh install (drop all tables, migrate, and seed)
-    go run main.go -fresh -seed
+	# Fresh install (drop all tables, migrate, and seed)
+	go run main.go -fresh -seed
 
-    # Show help
-    go run main.go -help
+	# Show help
+	go run main.go -help
 
 NOTES:
-    - Use -fresh flag with CAUTION as it will DELETE ALL DATA
-    - Always backup your database before running -fresh
-    - Run migrations before seeders for fresh installations
+	- Use -fresh flag with CAUTION as it will DELETE ALL DATA
+	- Always backup your database before running -fresh
+	- Run migrations before seeders for fresh installations
 
-════════════════════════════════════════════════════════════════
-`)
+════════════════════════════════════════════════════════════════`)
 	os.Exit(0)
 }
