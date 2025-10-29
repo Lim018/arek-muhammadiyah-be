@@ -8,30 +8,30 @@ type LoginRequest struct {
 }
 
 type CreateUserRequest struct {
-	ID           string     `json:"id" validate:"required"`
-	Name         string     `json:"name" validate:"required"`
-	Password     string     `json:"password" validate:"required,min=6"`
-	BirthDate    *time.Time `json:"birth_date"`
-	Telp         *string    `json:"telp"`
-	Gender       *string    `json:"gender"`
-	Job          *string    `json:"job"`
-	RoleID       *uint      `json:"role_id"`
-	SubVillageID *uint      `json:"sub_village_id"`
-	NIK          *string    `json:"nik"`
-	Address      *string    `json:"address"`
-	IsMobile     *bool      `json:"is_mobile"`
+	ID        string     `json:"id" validate:"required"`
+	Name      string     `json:"name" validate:"required"`
+	Password  string     `json:"password" validate:"required,min=6"`
+	BirthDate *time.Time `json:"birth_date"`
+	Telp      *string    `json:"telp"`
+	Gender    *string    `json:"gender"`
+	Job       *string    `json:"job"`
+	RoleID    *uint      `json:"role_id"`
+	VillageID *string    `json:"village_id"`
+	NIK       *string    `json:"nik"`
+	Address   *string    `json:"address"`
+	IsMobile  *bool      `json:"is_mobile"`
 }
 
 type UpdateUserRequest struct {
-	Name         *string    `json:"name"`
-	BirthDate    *time.Time `json:"birth_date"`
-	Telp         *string    `json:"telp"`
-	Gender       *string    `json:"gender"`
-	Job          *string    `json:"job"`
-	RoleID       *uint      `json:"role_id"`
-	SubVillageID *uint      `json:"sub_village_id"`
-	NIK          *string    `json:"nik"`
-	Address      *string    `json:"address"`
+	Name      *string    `json:"name"`
+	BirthDate *time.Time `json:"birth_date"`
+	Telp      *string    `json:"telp"`
+	Gender    *string    `json:"gender"`
+	Job       *string    `json:"job"`
+	RoleID    *uint      `json:"role_id"`
+	VillageID *string    `json:"village_id"`
+	NIK       *string    `json:"nik"`
+	Address   *string    `json:"address"`
 }
 
 type CreateArticleRequest struct {
@@ -60,22 +60,6 @@ type CreateDocumentRequest struct {
 	FileName    string  `json:"file_name" validate:"required"`
 	FileSize    *int64  `json:"file_size"`
 	MimeType    *string `json:"mime_type"`
-}
-
-type CreateVillageRequest struct {
-	Name        string  `json:"name" validate:"required"`
-	Code        string  `json:"code" validate:"required"`
-	Description *string `json:"description"`
-	Color       *string `json:"color"`
-	IsActive    *bool   `json:"is_active"`
-}
-
-type CreateSubVillageRequest struct {
-	VillageID   uint    `json:"village_id" validate:"required"`
-	Name        string  `json:"name" validate:"required"`
-	Code        string  `json:"code" validate:"required"`
-	Description *string `json:"description"`
-	IsActive    *bool   `json:"is_active"`
 }
 
 type CreateCategoryRequest struct {

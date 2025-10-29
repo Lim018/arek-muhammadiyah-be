@@ -5,8 +5,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SetupAuthRoutes(app *fiber.App) {
-	authService := service.NewAuthService()
+func SetupAuthRoutes(app *fiber.App, wilayahService *service.WilayahService) {
+	authService := service.NewAuthService(wilayahService)
 	auth := app.Group("/api/auth")
 
 	auth.Post("/login", authService.Login)

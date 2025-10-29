@@ -14,17 +14,14 @@ func SetupDashboardRoutes(app *fiber.App) {
 		userRepo := repository.NewUserRepository()
 		articleRepo := repository.NewArticleRepository()
 		ticketRepo := repository.NewTicketRepository()
-		villageRepo := repository.NewVillageRepository()
 
 		// Get totals
 		_, totalUsers, _ := userRepo.GetAll(1, 0)
 		_, totalArticles, _ := articleRepo.GetAll(1, 0, nil)
 		_, totalTickets, _ := ticketRepo.GetAll(1, 0, nil)
-		villages, _, _ := villageRepo.GetAll(100, 0, true)
 
 		// Get ticket stats
 		ticketStatusCounts, _ := ticketRepo.GetCountByStatus()
-		// cardStatusStats, _ := userRepo.GetCardStatusStats()
 
 		// Calculate total tickets
 		totalTicketsSum := int64(0)
@@ -32,11 +29,20 @@ func SetupDashboardRoutes(app *fiber.App) {
 			totalTicketsSum += count
 		}
 
+		// Get wilayah stats (grouped by city)
+		wilayahStats, _ := userRepo.GetWilayahStats()
+
+		// Get gender stats
+		genderStats := make(map[string]int64)
+		_, totalMale, _ := userRepo.GetByGender("male", 1, 0)
+		_, totalFemale, _ := userRepo.GetByGender("female", 1, 0)
+		genderStats["male"] = totalMale
+		genderStats["female"] = totalFemale
+
 		stats := model.DashboardStats{
 			TotalUsers:    totalUsers,
 			TotalArticles: totalArticles,
 			TotalTickets:  totalTickets,
-			TotalVillages: int64(len(villages)),
 			TicketStats: model.TicketStats{
 				Unread:     ticketStatusCounts[model.TicketStatusUnread],
 				Read:       ticketStatusCounts[model.TicketStatusRead],
@@ -45,7 +51,8 @@ func SetupDashboardRoutes(app *fiber.App) {
 				Closed:     ticketStatusCounts[model.TicketStatusClosed],
 				Total:      totalTicketsSum,
 			},
-			// CardStatusStats: cardStatusStats,
+			WilayahStats: wilayahStats,
+			GenderStats:  genderStats,
 		}
 
 		return c.JSON(model.Response{

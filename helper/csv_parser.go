@@ -4,22 +4,21 @@ import (
 	"encoding/csv"
 	"io"
 	"arek-muhammadiyah-be/app/model"
-	"strconv"
 	"strings"
 	"time"
 )
 
 type CSVUserData struct {
-	ID           string `csv:"id"`
-	Name         string `csv:"name"`
-	BirthDate    string `csv:"birth_date"`
-	Telp         string `csv:"telp"`
-	Gender       string `csv:"gender"`
-	Job          string `csv:"job"`
-	NIK          string `csv:"nik"`
-	Address      string `csv:"address"`
-	SubVillageID string `csv:"sub_village_id"`
-	IsMobile     string `csv:"is_mobile"`
+	ID        string `csv:"id"`
+	Name      string `csv:"name"`
+	BirthDate string `csv:"birth_date"`
+	Telp      string `csv:"telp"`
+	Gender    string `csv:"gender"`
+	Job       string `csv:"job"`
+	NIK       string `csv:"nik"`
+	Address   string `csv:"address"`
+	VillageID string `csv:"village_id"` // ID dari JSON wilayah (10 digit)
+	IsMobile  string `csv:"is_mobile"`
 }
 
 func ParseUsersFromCSV(reader io.Reader) ([]model.CreateUserRequest, error) {
@@ -60,11 +59,12 @@ func ParseUsersFromCSV(reader io.Reader) ([]model.CreateUserRequest, error) {
 			user.Address = &address
 		}
 
-		// SubVillageID (index 4)
+		// VillageID (index 4) - ID dari JSON wilayah (string 10 digit)
 		if len(record) > 4 && strings.TrimSpace(record[4]) != "" {
-			if subVillageID, err := strconv.ParseUint(strings.TrimSpace(record[4]), 10, 32); err == nil {
-				subVillageIDUint := uint(subVillageID)
-				user.SubVillageID = &subVillageIDUint
+			villageID := strings.TrimSpace(record[4])
+			// Validasi format (harus 10 digit)
+			if len(villageID) == 10 {
+				user.VillageID = &villageID
 			}
 		}
 
@@ -76,7 +76,7 @@ func ParseUsersFromCSV(reader io.Reader) ([]model.CreateUserRequest, error) {
 
 		// Gender (index 6)
 		if len(record) > 6 && strings.TrimSpace(record[6]) != "" {
-			gender := strings.TrimSpace(record[6])
+			gender := strings.TrimSpace(strings.ToLower(record[6]))
 			user.Gender = &gender
 		}
 

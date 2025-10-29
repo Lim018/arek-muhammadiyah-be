@@ -14,8 +14,6 @@ func RunMigrations() {
 
 	models := []interface{}{
 		&model.Role{},
-		&model.Village{},
-		&model.SubVillage{},  // Tambah SubVillage
 		&model.Category{},
 		&model.User{},
 		&model.Document{},
@@ -35,6 +33,7 @@ func RunMigrations() {
 	log.Println("✅ Migration completed successfully")
 }
 
+// RunMigrationsWithDrop - Hati-hati! Akan drop semua tabel dan buat ulang
 func RunMigrationsWithDrop() {
 	if DB == nil {
 		log.Fatal("Database not connected")
@@ -48,11 +47,10 @@ func RunMigrationsWithDrop() {
 		&model.Document{},
 		&model.User{},
 		&model.Category{},
-		&model.SubVillage{},
-		&model.Village{},
 		&model.Role{},
 	}
 
+	// Drop tables in reverse order (respecting foreign keys)
 	for _, m := range models {
 		if err := DB.Migrator().DropTable(m); err != nil {
 			log.Printf("⚠️  Failed to drop table %T: %v\n", m, err)

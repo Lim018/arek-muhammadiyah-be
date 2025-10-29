@@ -3,27 +3,36 @@ package model
 import "time"
 
 type User struct {
-	ID           uint       `json:"id" gorm:"primaryKey"`
-	Name         string     `json:"name" gorm:"not null"`
-	Password     string     `json:"-" gorm:"not null"`
-	BirthDate    *time.Time `json:"birth_date"`
-	Telp         *string    `json:"telp"`
-	Gender       *string    `json:"gender" gorm:"type:varchar(20)"` // male, female
-	Job          *string    `json:"job"`
-	RoleID       *uint      `json:"role_id"`
-	SubVillageID *uint      `json:"sub_village_id"`
-	NIK          *string    `json:"nik" gorm:"unique"`
-	Address      *string    `json:"address"`
-	IsMobile     bool       `json:"is_mobile" gorm:"default:false"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
+	ID         uint       `json:"id" gorm:"primaryKey"`
+	Name       string     `json:"name" gorm:"not null"`
+	Password   string     `json:"-" gorm:"not null"`
+	BirthDate  *time.Time `json:"birth_date"`
+	Telp       *string    `json:"telp"`
+	Gender     *string    `json:"gender" gorm:"type:varchar(20)"` // male, female
+	Job        *string    `json:"job"`
+	RoleID     *uint      `json:"role_id"`
+	
+	// Wilayah - hanya simpan Village ID (Kelurahan)
+	VillageID  *string    `json:"village_id" gorm:"type:varchar(20);index"` // ID dari JSON (contoh: "3576011001")
+	
+	NIK        *string    `json:"nik" gorm:"unique"`
+	Address    *string    `json:"address"`
+	IsMobile   bool       `json:"is_mobile" gorm:"default:false"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
 
 	// Relations
-	Role       *Role       `json:"role,omitempty" gorm:"foreignKey:RoleID"`
-	SubVillage *SubVillage `json:"sub_village,omitempty" gorm:"foreignKey:SubVillageID"`
-	Articles   []Article   `json:"articles,omitempty"`
-	Tickets    []Ticket    `json:"tickets,omitempty"`
-	Documents  []Document  `json:"documents,omitempty"`
+	Role     *Role     `json:"role,omitempty" gorm:"foreignKey:RoleID"`
+	Articles []Article `json:"articles,omitempty"`
+	Tickets  []Ticket  `json:"tickets,omitempty"`
+	Documents []Document `json:"documents,omitempty"`
+	
+	// Virtual fields - akan diisi dari JSON saat query
+	VillageName  string `json:"village_name,omitempty" gorm:"-"`
+	DistrictID   string `json:"district_id,omitempty" gorm:"-"`
+	DistrictName string `json:"district_name,omitempty" gorm:"-"`
+	CityID       string `json:"city_id,omitempty" gorm:"-"`
+	CityName     string `json:"city_name,omitempty" gorm:"-"`
 }
 
 // Method to calculate age
@@ -50,31 +59,20 @@ type Role struct {
 	Users []User `json:"users,omitempty"`
 }
 
-type Village struct {
-	ID          uint      `json:"id" gorm:"primaryKey"`
-	Name        string    `json:"name" gorm:"not null"` // Kabupaten
-	Code        string    `json:"code" gorm:"unique;not null"`
-	Description *string   `json:"description"`
-	Color       string    `json:"color" gorm:"default:'#3B82F6'"`
-	IsActive    bool      `json:"is_active" gorm:"default:true"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-
-	// Relations
-	SubVillages []SubVillage `json:"sub_villages,omitempty"`
+// Struct untuk parse JSON wilayah Indonesia
+type City struct {
+	ID        string     `json:"id"`
+	Name      string     `json:"name"`
+	Districts []District `json:"districts"`
 }
 
-type SubVillage struct {
-	ID          uint      `json:"id" gorm:"primaryKey"`
-	VillageID   uint      `json:"village_id" gorm:"not null"`
-	Name        string    `json:"name" gorm:"not null"` // Kecamatan
-	Code        string    `json:"code" gorm:"unique;not null"`
-	Description *string   `json:"description"`
-	IsActive    bool      `json:"is_active" gorm:"default:true"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+type District struct {
+	ID       string    `json:"id"`
+	Name     string    `json:"name"`
+	Villages []Village `json:"villages"`
+}
 
-	// Relations
-	Village *Village `json:"village,omitempty" gorm:"foreignKey:VillageID"`
-	Users   []User   `json:"users,omitempty"`
+type Village struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }

@@ -1,25 +1,24 @@
 package route
 
 import (
+	"arek-muhammadiyah-be/app/service"
 	"github.com/gofiber/fiber/v2"
 )
 
-func Setup(app *fiber.App) {
-	// Health check
-	app.Get("/api/health", func(c *fiber.Ctx) error {
+func Setup(app *fiber.App, wilayahService *service.WilayahService) {
+	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
-			"status":  "ok",
-			"message": "Organization System API is running",
+			"success": true,
+			"message": "Arek Muhammadiyah API is running",
+			"version": "3.0.0",
 		})
 	})
 
-	// Setup all routes
-	SetupAuthRoutes(app)
-	SetupUserRoutes(app)
+	SetupAuthRoutes(app, wilayahService)
+	SetupUserRoutes(app, wilayahService)
+	SetupWilayahRoutes(app, wilayahService)
 	SetupArticleRoutes(app)
 	SetupTicketRoutes(app)
-	SetupVillageRoutes(app)
-	SetupSubVillageRoutes(app) 
 	SetupDocumentRoutes(app)
 	SetupCategoryRoutes(app)
 	SetupDashboardRoutes(app)

@@ -25,7 +25,7 @@ func (r *UserRepository) GetAll(limit, offset int) ([]model.User, int64, error) 
 		return nil, 0, err
 	}
 
-	err = r.db.Preload("Role").Preload("SubVillage").Preload("SubVillage.Village").
+	err = r.db.Preload("Role").
 		Limit(limit).Offset(offset).Find(&users).Error
 
 	return users, total, err
@@ -33,7 +33,7 @@ func (r *UserRepository) GetAll(limit, offset int) ([]model.User, int64, error) 
 
 func (r *UserRepository) GetByID(id string) (*model.User, error) {
 	var user model.User
-	err := r.db.Preload("Role").Preload("SubVillage").Preload("SubVillage.Village").
+	err := r.db.Preload("Role").
 		First(&user, "id = ?", id).Error
 	return &user, err
 }
@@ -50,83 +50,6 @@ func (r *UserRepository) Delete(id string) error {
 	return r.db.Delete(&model.User{}, "id = ?", id).Error
 }
 
-func (r *UserRepository) GetBySubVillage(subVillageID uint, limit, offset int) ([]model.User, int64, error) {
-	var users []model.User
-	var total int64
-
-	err := r.db.Model(&model.User{}).Where("sub_village_id = ?", subVillageID).Count(&total).Error
-	if err != nil {
-		return nil, 0, err
-	}
-
-	err = r.db.Preload("Role").Preload("SubVillage").Preload("SubVillage.Village").
-		Where("sub_village_id = ?", subVillageID).
-		Limit(limit).Offset(offset).Find(&users).Error
-	return users, total, err
-}
-
-func (r *UserRepository) GetByVillage(villageID uint, limit, offset int) ([]model.User, int64, error) {
-	var users []model.User
-	var total int64
-
-	err := r.db.Model(&model.User{}).
-		Joins("JOIN sub_villages ON users.sub_village_id = sub_villages.id").
-		Where("sub_villages.village_id = ?", villageID).
-		Count(&total).Error
-	if err != nil {
-		return nil, 0, err
-	}
-
-	err = r.db.Preload("Role").Preload("SubVillage").Preload("SubVillage.Village").
-		Joins("JOIN sub_villages ON users.sub_village_id = sub_villages.id").
-		Where("sub_villages.village_id = ?", villageID).
-		Limit(limit).Offset(offset).Find(&users).Error
-	return users, total, err
-}
-
-func (r *UserRepository) GetWithStats(limit, offset int) ([]model.UserWithStats, int64, error) {
-	var users []model.UserWithStats
-	var total int64
-
-	err := r.db.Model(&model.User{}).Count(&total).Error
-	if err != nil {
-		return nil, 0, err
-	}
-
-	query := `
-		SELECT u.*, 
-			   COALESCE(article_count, 0) as total_articles,
-			   COALESCE(ticket_count, 0) as total_tickets,
-			   COALESCE(document_count, 0) as total_documents
-		FROM users u
-		LEFT JOIN (
-			SELECT user_id, COUNT(*) as article_count 
-			FROM articles 
-			GROUP BY user_id
-		) a ON u.id = a.user_id
-		LEFT JOIN (
-			SELECT user_id, COUNT(*) as ticket_count 
-			FROM tickets 
-			GROUP BY user_id
-		) t ON u.id = t.user_id
-		LEFT JOIN (
-			SELECT user_id, COUNT(*) as document_count 
-			FROM documents 
-			GROUP BY user_id
-		) d ON u.id = d.user_id
-		LIMIT ? OFFSET ?
-	`
-
-	err = r.db.Raw(query, limit, offset).Scan(&users).Error
-	
-	// Calculate age for each user
-	for i := range users {
-		users[i].Age = users[i].GetAge()
-	}
-	
-	return users, total, err
-}
-
 func (r *UserRepository) GetMobileUsers(limit, offset int) ([]model.User, int64, error) {
 	var users []model.User
 	var total int64
@@ -136,7 +59,7 @@ func (r *UserRepository) GetMobileUsers(limit, offset int) ([]model.User, int64,
 		return nil, 0, err
 	}
 
-	err = r.db.Preload("Role").Preload("SubVillage").Preload("SubVillage.Village").
+	err = r.db.Preload("Role").
 		Where("is_mobile = ?", true).
 		Limit(limit).Offset(offset).Find(&users).Error
 	return users, total, err
@@ -151,8 +74,90 @@ func (r *UserRepository) GetByGender(gender string, limit, offset int) ([]model.
 		return nil, 0, err
 	}
 
-	err = r.db.Preload("Role").Preload("SubVillage").Preload("SubVillage.Village").
+	err = r.db.Preload("Role").
 		Where("gender = ?", gender).
 		Limit(limit).Offset(offset).Find(&users).Error
 	return users, total, err
+}
+
+// GetByCity - Get users by city_id (first 4 chars of village_id)
+func (r *UserRepository) GetByCity(cityID string, limit, offset int) ([]model.User, int64, error) {
+	var users []model.User
+	var total int64
+
+	// village_id format: "3576011001"
+	// city_id: "3576" (first 4 chars)
+	query := r.db.Model(&model.User{}).Where("LEFT(village_id, 4) = ?", cityID)
+
+	err := query.Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = r.db.Preload("Role").
+		Where("LEFT(village_id, 4) = ?", cityID).
+		Limit(limit).Offset(offset).Find(&users).Error
+	return users, total, err
+}
+
+// GetByDistrict - Get users by district_id (first 6 chars of village_id)
+func (r *UserRepository) GetByDistrict(districtID string, limit, offset int) ([]model.User, int64, error) {
+	var users []model.User
+	var total int64
+
+	// village_id format: "3576011001"
+	// district_id: "357601" (first 6 chars)
+	query := r.db.Model(&model.User{}).Where("LEFT(village_id, 6) = ?", districtID)
+
+	err := query.Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = r.db.Preload("Role").
+		Where("LEFT(village_id, 6) = ?", districtID).
+		Limit(limit).Offset(offset).Find(&users).Error
+	return users, total, err
+}
+
+// GetByVillage - Get users by village_id
+func (r *UserRepository) GetByVillage(villageID string, limit, offset int) ([]model.User, int64, error) {
+	var users []model.User
+	var total int64
+
+	err := r.db.Model(&model.User{}).Where("village_id = ?", villageID).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = r.db.Preload("Role").
+		Where("village_id = ?", villageID).
+		Limit(limit).Offset(offset).Find(&users).Error
+	return users, total, err
+}
+
+// GetWilayahStats - Get statistics by wilayah
+func (r *UserRepository) GetWilayahStats() (map[string]interface{}, error) {
+	var results []struct {
+		CityID string
+		Total  int64
+	}
+
+	// Count by city (first 4 chars of village_id)
+	err := r.db.Model(&model.User{}).
+		Select("LEFT(village_id, 4) as city_id, COUNT(*) as total").
+		Where("village_id IS NOT NULL AND village_id != ''").
+		Group("city_id").
+		Scan(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	stats := make(map[string]interface{})
+	for _, result := range results {
+		stats[result.CityID] = result.Total
+	}
+
+	return stats, nil
 }
