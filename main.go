@@ -152,16 +152,10 @@ ENVIRONMENT VARIABLES:
     DB_NAME              Database name
 
 NOTES:
-<<<<<<< HEAD
-	- Use -fresh flag with CAUTION as it will DELETE ALL DATA
-	- Always backup your database before running -fresh
-	- Run migrations before seeders for fresh installations
-=======
     - Use -fresh flag with CAUTION as it will DELETE ALL DATA
     - Always backup your database before running -fresh
     - Run migrations before seeders for fresh installations
     - Wilayah data must be loaded for location features to work
->>>>>>> f79c208f36c75d07d45a6a1cb220ac0fcf94334a
 
 ════════════════════════════════════════════════════════════════`)
 	os.Exit(0)

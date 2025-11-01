@@ -48,7 +48,7 @@ func SetupDashboardRoutes(app *fiber.App) {
 				Read:       ticketStatusCounts[model.TicketStatusRead],
 				InProgress: ticketStatusCounts[model.TicketStatusInProgress],
 				Resolved:   ticketStatusCounts[model.TicketStatusResolved],
-				Closed:     ticketStatusCounts[model.TicketStatusClosed],
+				Rejected:     ticketStatusCounts[model.TicketStatusRejected],
 				Total:      totalTicketsSum,
 			},
 			WilayahStats: wilayahStats,

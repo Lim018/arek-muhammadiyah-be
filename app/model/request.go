@@ -35,17 +35,19 @@ type UpdateUserRequest struct {
 }
 
 type CreateArticleRequest struct {
-	CategoryID   *uint   `json:"category_id"`
-	Title        string  `json:"title" validate:"required"`
-	Content      string  `json:"content" validate:"required"`
-	FeatureImage *string `json:"feature_image"`
-	IsPublished  *bool   `json:"is_published"`
+	CategoryID   *uint                   `json:"category_id"`
+	Title        string                  `json:"title" validate:"required"`
+	Content      string                  `json:"content" validate:"required"`
+	FeatureImage *string                 `json:"feature_image"`
+	IsPublished  *bool                   `json:"is_published"`
+	Documents    []CreateDocumentRequest `json:"documents"` // tambah ini
 }
 
 type CreateTicketRequest struct {
-	CategoryID  *uint  `json:"category_id"`
-	Title       string `json:"title" validate:"required"`
-	Description string `json:"description" validate:"required"`
+	CategoryID  *uint                   `json:"category_id"`
+	Title       string                  `json:"title" validate:"required"`
+	Description string                  `json:"description" validate:"required"`
+	Documents   []CreateDocumentRequest `json:"documents"` // tambah ini
 }
 
 type UpdateTicketRequest struct {
@@ -60,6 +62,8 @@ type CreateDocumentRequest struct {
 	FileName    string  `json:"file_name" validate:"required"`
 	FileSize    *int64  `json:"file_size"`
 	MimeType    *string `json:"mime_type"`
+	TicketID    *uint   `json:"ticket_id,omitempty"`
+	ArticleID   *uint   `json:"article_id,omitempty"`
 }
 
 type CreateCategoryRequest struct {

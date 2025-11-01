@@ -84,9 +84,8 @@ func (s *DocumentService) GetByUserID(c *fiber.Ctx) error {
 }
 
 func (s *DocumentService) Create(c *fiber.Ctx) error {
-	userID := c.Locals("userID").(string)
 	var req model.CreateDocumentRequest
-	
+
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
 			Success: false,
@@ -95,17 +94,18 @@ func (s *DocumentService) Create(c *fiber.Ctx) error {
 	}
 
 	document := &model.Document{
-		UserID:      userID,
 		Title:       req.Title,
 		Description: req.Description,
 		FilePath:    req.FilePath,
 		FileName:    req.FileName,
 		FileSize:    req.FileSize,
 		MimeType:    req.MimeType,
+		TicketID:    *req.TicketID,
+		ArticleID:   *req.ArticleID,
 	}
 
 	if err := s.documentRepo.Create(document); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
 			Success: false,
 			Message: err.Error(),
 		})
@@ -118,9 +118,10 @@ func (s *DocumentService) Create(c *fiber.Ctx) error {
 	})
 }
 
+
 func (s *DocumentService) Delete(c *fiber.Ctx) error {
 	id, _ := strconv.ParseUint(c.Params("id"), 10, 32)
-	
+
 	if _, err := s.documentRepo.GetByID(uint(id)); err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(model.Response{
 			Success: false,

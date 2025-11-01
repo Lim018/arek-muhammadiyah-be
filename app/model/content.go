@@ -32,6 +32,7 @@ type Article struct {
 	// Relations
 	User     *User     `json:"user,omitempty" gorm:"foreignKey:UserID"`
 	Category *Category `json:"category,omitempty" gorm:"foreignKey:CategoryID"`
+	Documents []Document `json:"documents,omitempty" gorm:"foreignKey:ArticleID"` // One-to-Many
 }
 
 type TicketStatus string
@@ -41,7 +42,7 @@ const (
 	TicketStatusRead       TicketStatus = "read"
 	TicketStatusInProgress TicketStatus = "in_progress"
 	TicketStatusResolved   TicketStatus = "resolved"
-	TicketStatusClosed     TicketStatus = "closed"
+	TicketStatusRejected   TicketStatus = "Rejected"
 )
 
 type Ticket struct {
@@ -59,11 +60,13 @@ type Ticket struct {
 	// Relations
 	User     *User     `json:"user,omitempty" gorm:"foreignKey:UserID"`
 	Category *Category `json:"category,omitempty" gorm:"foreignKey:CategoryID"`
+	Documents []Document  `json:"documents,omitempty" gorm:"foreignKey:TicketID"` // relasi dengan documents
 }
 
 type Document struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
-	UserID      string    `json:"user_id" gorm:"not null"`
+	TicketID    uint      `json:"ticket_id" gorm:"not null"` // relasi baru ke Ticket
+	ArticleID    uint      `json:"article_id" gorm:"not null"` // relasi baru ke Ticket
 	Title       string    `json:"title" gorm:"not null"`
 	Description *string   `json:"description"`
 	FilePath    string    `json:"file_path" gorm:"not null"`
@@ -73,6 +76,7 @@ type Document struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 
-	// Relations
-	User *User `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Ticket  *Ticket  `json:"ticket,omitempty" gorm:"foreignKey:TicketID"`
+	Article *Article `json:"article,omitempty" gorm:"foreignKey:ArticleID"`
 }
+

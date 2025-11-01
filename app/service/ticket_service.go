@@ -72,7 +72,7 @@ func (s *TicketService) UpdateTicket(id uint, req *model.UpdateTicketRequest) (*
 	if req.Status != nil {
 		updateData.Status = *req.Status
 		
-		if *req.Status == model.TicketStatusResolved || *req.Status == model.TicketStatusClosed {
+		if *req.Status == model.TicketStatusResolved || *req.Status == model.TicketStatusRejected {
 			now := time.Now()
 			updateData.ResolvedAt = &now
 		}

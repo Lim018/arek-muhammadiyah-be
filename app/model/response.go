@@ -33,7 +33,7 @@ type TicketStats struct {
 	Read       int64 `json:"read"`
 	InProgress int64 `json:"in_progress"`
 	Resolved   int64 `json:"resolved"`
-	Closed     int64 `json:"closed"`
+	Rejected   int64 `json:"rejected"`
 	Total      int64 `json:"total"`
 }
 
