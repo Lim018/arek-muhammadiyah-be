@@ -19,6 +19,7 @@ func NewDocumentService() *DocumentService {
 	}
 }
 
+// Get all documents (paginated)
 func (s *DocumentService) GetAll(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
@@ -42,6 +43,7 @@ func (s *DocumentService) GetAll(c *fiber.Ctx) error {
 	})
 }
 
+// Get document by ID
 func (s *DocumentService) GetByID(c *fiber.Ctx) error {
 	id, _ := strconv.ParseUint(c.Params("id"), 10, 32)
 	document, err := s.documentRepo.GetByID(uint(id))
@@ -59,13 +61,14 @@ func (s *DocumentService) GetByID(c *fiber.Ctx) error {
 	})
 }
 
-func (s *DocumentService) GetByUserID(c *fiber.Ctx) error {
-	userID := c.Params("userId")
+// Get documents by TicketID
+func (s *DocumentService) GetByTicketID(c *fiber.Ctx) error {
+	ticketID, _ := strconv.ParseUint(c.Params("ticketId"), 10, 32)
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 	offset := (page - 1) * limit
 
-	documents, total, err := s.documentRepo.GetByUserID(userID, limit, offset)
+	documents, total, err := s.documentRepo.GetByTicketID(uint(ticketID), limit, offset)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
 			Success: false,
@@ -83,6 +86,32 @@ func (s *DocumentService) GetByUserID(c *fiber.Ctx) error {
 	})
 }
 
+// Get documents by ArticleID
+func (s *DocumentService) GetByArticleID(c *fiber.Ctx) error {
+	articleID, _ := strconv.ParseUint(c.Params("articleId"), 10, 32)
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	offset := (page - 1) * limit
+
+	documents, total, err := s.documentRepo.GetByArticleID(uint(articleID), limit, offset)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: err.Error(),
+		})
+	}
+
+	pagination := helper.CreatePagination(int64(page), int64(limit), total)
+
+	return c.JSON(model.PaginatedResponse{
+		Success:    true,
+		Message:    "Documents retrieved successfully",
+		Data:       documents,
+		Pagination: pagination,
+	})
+}
+
+// Create new document
 func (s *DocumentService) Create(c *fiber.Ctx) error {
 	var req model.CreateDocumentRequest
 
@@ -93,6 +122,14 @@ func (s *DocumentService) Create(c *fiber.Ctx) error {
 		})
 	}
 
+	// Validasi minimal salah satu ID ada
+	if req.TicketID == nil && req.ArticleID == nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+			Success: false,
+			Message: "Either ticket_id or article_id must be provided",
+		})
+	}
+
 	document := &model.Document{
 		Title:       req.Title,
 		Description: req.Description,
@@ -100,8 +137,14 @@ func (s *DocumentService) Create(c *fiber.Ctx) error {
 		FileName:    req.FileName,
 		FileSize:    req.FileSize,
 		MimeType:    req.MimeType,
-		TicketID:    *req.TicketID,
-		ArticleID:   *req.ArticleID,
+	}
+
+	if req.TicketID != nil {
+		document.TicketID = *req.TicketID
+	}
+
+	if req.ArticleID != nil {
+		document.ArticleID = *req.ArticleID
 	}
 
 	if err := s.documentRepo.Create(document); err != nil {
@@ -117,7 +160,6 @@ func (s *DocumentService) Create(c *fiber.Ctx) error {
 		Data:    document,
 	})
 }
-
 
 func (s *DocumentService) Delete(c *fiber.Ctx) error {
 	id, _ := strconv.ParseUint(c.Params("id"), 10, 32)

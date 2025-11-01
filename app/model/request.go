@@ -40,14 +40,14 @@ type CreateArticleRequest struct {
 	Content      string                  `json:"content" validate:"required"`
 	FeatureImage *string                 `json:"feature_image"`
 	IsPublished  *bool                   `json:"is_published"`
-	Documents    []CreateDocumentRequest `json:"documents"` // tambah ini
+	Documents    []CreateDocumentRequest `json:"documents,omitempty"`
 }
 
 type CreateTicketRequest struct {
 	CategoryID  *uint                   `json:"category_id"`
 	Title       string                  `json:"title" validate:"required"`
 	Description string                  `json:"description" validate:"required"`
-	Documents   []CreateDocumentRequest `json:"documents"` // tambah ini
+	Documents    []CreateDocumentRequest `json:"documents,omitempty"`
 }
 
 type UpdateTicketRequest struct {

@@ -26,21 +26,28 @@ func (r *TicketRepository) GetAll(limit, offset int, status *model.TicketStatus)
 		query = query.Where("status = ?", *status)
 	}
 
-	err := query.Count(&total).Error
-	if err != nil {
+	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	err = query.Preload("User").Preload("Category").
+	err := query.
+		Preload("User").
+		Preload("Category").
+		Preload("Documents"). 
 		Order("created_at DESC").
-		Limit(limit).Offset(offset).Find(&tickets).Error
+		Limit(limit).
+		Offset(offset).
+		Find(&tickets).Error
 
 	return tickets, total, err
 }
 
 func (r *TicketRepository) GetByID(id uint) (*model.Ticket, error) {
 	var ticket model.Ticket
-	err := r.db.Preload("User").Preload("Category").
+	err := r.db.
+		Preload("User").
+		Preload("Category").
+		Preload("Documents"). 
 		First(&ticket, id).Error
 	return &ticket, err
 }
@@ -49,15 +56,20 @@ func (r *TicketRepository) GetByUserID(userID string, limit, offset int) ([]mode
 	var tickets []model.Ticket
 	var total int64
 
-	err := r.db.Model(&model.Ticket{}).Where("user_id = ?", userID).Count(&total).Error
-	if err != nil {
+	if err := r.db.Model(&model.Ticket{}).
+		Where("user_id = ?", userID).
+		Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	err = r.db.Preload("Category").
+	err := r.db.
+		Preload("Category").
+		Preload("Documents"). 
 		Where("user_id = ?", userID).
 		Order("created_at DESC").
-		Limit(limit).Offset(offset).Find(&tickets).Error
+		Limit(limit).
+		Offset(offset).
+		Find(&tickets).Error
 
 	return tickets, total, err
 }
@@ -81,7 +93,7 @@ func (r *TicketRepository) GetCountByStatus() (map[model.TicketStatus]int64, err
 	}
 
 	err := r.db.Model(&model.Ticket{}).
-		Select("status, count(*) as count").
+		Select("status, COUNT(*) AS count").
 		Group("status").
 		Scan(&results).Error
 
