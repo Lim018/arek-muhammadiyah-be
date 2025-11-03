@@ -25,7 +25,7 @@ type User struct {
 	Role     *Role     `json:"role,omitempty" gorm:"foreignKey:RoleID"`
 	Articles []Article `json:"articles,omitempty"`
 	Tickets  []Ticket  `json:"tickets,omitempty"`
-	Documents []Document `json:"documents,omitempty"`
+	// Documents []Document `json:"documents,omitempty"`
 	
 	// Virtual fields - akan diisi dari JSON saat query
 	VillageName  string `json:"village_name,omitempty" gorm:"-"`

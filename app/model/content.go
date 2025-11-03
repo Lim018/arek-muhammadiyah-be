@@ -30,9 +30,9 @@ type Article struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 
 	// Relations
-	User     *User     `json:"user,omitempty" gorm:"foreignKey:UserID"`
-	Category *Category `json:"category,omitempty" gorm:"foreignKey:CategoryID"`
-	Documents []Document `json:"documents,omitempty" gorm:"foreignKey:ArticleID"` // One-to-Many
+	User      *User      `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Category  *Category  `json:"category,omitempty" gorm:"foreignKey:CategoryID"`
+	Documents []Document `json:"documents,omitempty" gorm:"foreignKey:ArticleID"`
 }
 
 type TicketStatus string
@@ -58,15 +58,15 @@ type Ticket struct {
 	ResolvedAt  *time.Time   `json:"resolved_at"`
 
 	// Relations
-	User     *User     `json:"user,omitempty" gorm:"foreignKey:UserID"`
-	Category *Category `json:"category,omitempty" gorm:"foreignKey:CategoryID"`
-	Documents []Document  `json:"documents,omitempty" gorm:"foreignKey:TicketID"` // relasi dengan documents
+	User      *User      `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Category  *Category  `json:"category,omitempty" gorm:"foreignKey:CategoryID"`
+	Documents []Document `json:"documents,omitempty" gorm:"foreignKey:TicketID"`
 }
 
 type Document struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
-	TicketID    uint      `json:"ticket_id" gorm:"not null"` // relasi baru ke Ticket
-	ArticleID    uint      `json:"article_id" gorm:"not null"` // relasi baru ke Ticket
+	TicketID    *uint     `json:"ticket_id" gorm:"default:null"`
+	ArticleID   *uint     `json:"article_id" gorm:"default:null"`
 	Title       string    `json:"title" gorm:"not null"`
 	Description *string   `json:"description"`
 	FilePath    string    `json:"file_path" gorm:"not null"`
@@ -79,4 +79,3 @@ type Document struct {
 	Ticket  *Ticket  `json:"ticket,omitempty" gorm:"foreignKey:TicketID"`
 	Article *Article `json:"article,omitempty" gorm:"foreignKey:ArticleID"`
 }
-

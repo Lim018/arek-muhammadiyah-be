@@ -9,7 +9,7 @@ import (
 
 type ArticleService struct {
 	articleRepo  *repository.ArticleRepository
-	documentRepo *repository.DocumentRepository
+	documentRepo *repository.DocumentRepository // documentRepo bisa disimpan jika dipakai servis lain
 }
 
 func NewArticleService() *ArticleService {
@@ -46,6 +46,21 @@ func (s *ArticleService) CreateArticle(userID string, req *model.CreateArticleRe
 		slug = helper.GenerateUniqueSlug(req.Title)
 	}
 
+	// 1. Siapkan slice dokumen dari request
+	var documents []model.Document
+	for _, docReq := range req.Documents {
+		documents = append(documents, model.Document{
+			Title:       docReq.Title,
+			Description: docReq.Description,
+			FilePath:    docReq.FilePath,
+			FileName:    docReq.FileName,
+			FileSize:    docReq.FileSize,
+			MimeType:    docReq.MimeType,
+			// ArticleID akan diisi oleh repository
+		})
+	}
+
+	// 2. Siapkan objek article lengkap
 	article := &model.Article{
 		UserID:       userID,
 		CategoryID:   req.CategoryID,
@@ -54,24 +69,15 @@ func (s *ArticleService) CreateArticle(userID string, req *model.CreateArticleRe
 		Content:      req.Content,
 		FeatureImage: req.FeatureImage,
 		IsPublished:  helper.GetBoolValue(req.IsPublished, false),
+		Documents:    documents, // <-- Masukkan dokumen ke sini
 	}
 
+	// 3. Panggil repo.Create HANYA SEKALI
 	if err := s.articleRepo.Create(article); err != nil {
 		return nil, err
 	}
 
-	for _, docReq := range req.Documents {
-		doc := &model.Document{
-			ArticleID:   article.ID,
-			Title:       docReq.Title,
-			Description: docReq.Description,
-			FilePath:    docReq.FilePath,
-			FileName:    docReq.FileName,
-			FileSize:    docReq.FileSize,
-			MimeType:    docReq.MimeType,
-		}
-		_ = s.documentRepo.Create(doc) 
-	}
+	// 4. HAPUS loop "for _, docReq := ..." yang lama
 
 	return s.articleRepo.GetByID(article.ID)
 }
@@ -93,6 +99,7 @@ func (s *ArticleService) UpdateArticle(id uint, req *model.CreateArticleRequest)
 		slug = existing.Slug
 	}
 
+	// 1. Siapkan data update untuk artikel
 	updateData := &model.Article{
 		CategoryID:   helper.GetUintPointer(req.CategoryID, existing.CategoryID),
 		Title:        helper.GetStringValue(&req.Title, existing.Title),
@@ -102,39 +109,39 @@ func (s *ArticleService) UpdateArticle(id uint, req *model.CreateArticleRequest)
 		IsPublished:  helper.GetBoolValue(req.IsPublished, existing.IsPublished),
 	}
 
-	if err := s.articleRepo.Update(id, updateData); err != nil {
+	// 2. Siapkan dokumen BARU yang akan ditambahkan
+	// (Logika ini hanya menambah, tidak menghapus/mengedit dokumen lama)
+	var newDocuments []model.Document
+	for _, docReq := range req.Documents {
+		newDocuments = append(newDocuments, model.Document{
+			Title:       docReq.Title,
+			Description: docReq.Description,
+			FilePath:    docReq.FilePath,
+			FileName:    docReq.FileName,
+			FileSize:    docReq.FileSize,
+			MimeType:    docReq.MimeType,
+			// ArticleID akan diisi oleh repository
+		})
+	}
+
+	// 3. Panggil repo.Update HANYA SEKALI
+	// Kita perlu mengubah signature repo.Update untuk menerima dokumen baru
+	if err := s.articleRepo.Update(id, updateData, newDocuments); err != nil {
 		return nil, err
 	}
 
-	if len(req.Documents) > 0 {
-		for _, docReq := range req.Documents {
-			doc := &model.Document{
-				ArticleID:   id,
-				Title:       docReq.Title,
-				Description: docReq.Description,
-				FilePath:    docReq.FilePath,
-				FileName:    docReq.FileName,
-				FileSize:    docReq.FileSize,
-				MimeType:    docReq.MimeType,
-			}
-			_ = s.documentRepo.Create(doc)
-		}
-	}
+	// 4. HAPUS loop "for _, docReq := ..." yang lama
 
 	return s.articleRepo.GetByID(id)
 }
 
 func (s *ArticleService) DeleteArticle(id uint) error {
-	article, err := s.articleRepo.GetByID(id)
+	// Panggil repo.Delete, yang sudah transaksional
+	_, err := s.articleRepo.GetByID(id)
 	if err != nil {
 		return errors.New("article not found")
 	}
-	docs, _, _ := s.documentRepo.GetByArticleID(article.ID, 1000, 0)
-	for _, doc := range docs {
-		if err := s.documentRepo.Delete(doc.ID); err != nil {
-			return err
-		}
-	}
-
+	
+	// Tidak perlu loop untuk hapus dokumen, repo.Delete akan menanganinya
 	return s.articleRepo.Delete(id)
 }

@@ -140,11 +140,11 @@ func (s *DocumentService) Create(c *fiber.Ctx) error {
 	}
 
 	if req.TicketID != nil {
-		document.TicketID = *req.TicketID
+		document.TicketID = req.TicketID
 	}
 
 	if req.ArticleID != nil {
-		document.ArticleID = *req.ArticleID
+		document.ArticleID = req.ArticleID
 	}
 
 	if err := s.documentRepo.Create(document); err != nil {

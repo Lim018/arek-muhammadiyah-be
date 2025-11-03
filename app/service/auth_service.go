@@ -3,7 +3,6 @@ package service
 import (
 	"arek-muhammadiyah-be/app/model"
 	"arek-muhammadiyah-be/app/repository"
-	"arek-muhammadiyah-be/helper"
 	"arek-muhammadiyah-be/helper/utils"
 	"fmt"
 
@@ -85,52 +84,58 @@ func (s *AuthService) Login(c *fiber.Ctx) error {
 	})
 }
 
-// Register handler
-func (s *AuthService) Register(c *fiber.Ctx) error {
-	var req model.CreateUserRequest
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
-			Success: false,
-			Message: "Invalid request body",
-		})
-	}
-
-	// Hash password
-	hashedPassword, err := utils.HashPassword(req.Password)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
-			Success: false,
-			Message: "Failed to hash password",
-		})
-	}
-
-	user := &model.User{
-		Name:      req.Name,
-		Password:  hashedPassword,
-		BirthDate: req.BirthDate,
-		Telp:      req.Telp,
-		Gender:    req.Gender,
-		Job:       req.Job,
-		RoleID:    req.RoleID,
-		VillageID: req.VillageID, // Simpan village_id dari JSON
-		NIK:       req.NIK,
-		Address:   req.Address,
-		IsMobile:  helper.GetBoolValue(req.IsMobile, false),
-	}
-
-	if err := s.userRepo.Create(user); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
-			Success: false,
-			Message: err.Error(),
-		})
-	}
-
-	// Enrich dengan data wilayah sebelum return
-	s.enrichUserWithWilayah(user)
-
-	return c.Status(fiber.StatusCreated).JSON(model.Response{
+// Logout handler
+func (s *AuthService) Logout(c *fiber.Ctx) error {
+	// Karena menggunakan JWT stateless, logout hanya perlu menghapus token di client side
+	// Server hanya mengirim response sukses
+	return c.JSON(model.Response{
 		Success: true,
-		Message: "User registered successfully",
-		Data:    user,
+		Message: "Logout successful",
+	})
+}
+
+// Navbar handler - Get user info untuk navbar
+func (s *AuthService) GetNavbar(c *fiber.Ctx) error {
+	// Get user ID dari JWT token (sudah di-extract oleh middleware)
+	// Middleware menggunakan "user_id" dengan underscore
+	userIDInterface := c.Locals("user_id")
+	if userIDInterface == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(model.Response{
+			Success: false,
+			Message: "Unauthorized",
+		})
+	}
+
+	userID, ok := userIDInterface.(string)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(model.Response{
+			Success: false,
+			Message: "Invalid user ID format",
+		})
+	}
+
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(model.Response{
+			Success: false,
+			Message: "User not found",
+		})
+	}
+
+	// Get role name
+	roleName := "user"
+	if user.Role != nil {
+		roleName = user.Role.Name
+	}
+
+	return c.JSON(model.Response{
+		Success: true,
+		Message: "Navbar data retrieved successfully",
+		Data: fiber.Map{
+			"user": fiber.Map{
+				"name": user.Name,
+				"role": roleName,
+			},
+		},
 	})
 }

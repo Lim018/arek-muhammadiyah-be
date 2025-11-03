@@ -22,4 +22,5 @@ func Setup(app *fiber.App, wilayahService *service.WilayahService) {
 	SetupDocumentRoutes(app)
 	SetupCategoryRoutes(app)
 	SetupDashboardRoutes(app)
+	SetupStatsRoutes(app)
 }
