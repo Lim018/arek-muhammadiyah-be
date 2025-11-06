@@ -3,8 +3,8 @@ package model
 import "time"
 
 type LoginRequest struct {
-	ID       string `json:"id" validate:"required"`
-	Password string `json:"password" validate:"required"`
+	Telp     string `json:"telp"`
+	Password string `json:"password"`
 }
 
 type CreateUserRequest struct {

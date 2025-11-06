@@ -48,13 +48,17 @@ func (s *AuthService) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	user, err := s.userRepo.GetByID(req.ID)
+	// --- PERUBAHAN DI SINI ---
+	// Mengganti GetByID(req.ID) menjadi GetByTelp(req.Telp)
+	user, err := s.userRepo.GetByTelp(req.Telp)
 	if err != nil {
+		// userRepo.GetByID(req.ID) ->
 		return c.Status(fiber.StatusUnauthorized).JSON(model.Response{
 			Success: false,
 			Message: "Invalid credentials",
 		})
 	}
+	// --- AKHIR PERUBAHAN ---
 
 	if !utils.CheckPasswordHash(req.Password, user.Password) {
 		return c.Status(fiber.StatusUnauthorized).JSON(model.Response{
