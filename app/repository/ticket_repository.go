@@ -108,3 +108,7 @@ func (r *TicketRepository) GetCountByStatus() (map[model.TicketStatus]int64, err
 
 	return counts, nil
 }
+
+func (r *TicketRepository) Begin() *gorm.DB {
+	return r.db.Begin()
+}

@@ -1,168 +1,34 @@
 package route
 
 import (
-	"arek-muhammadiyah-be/app/model"
 	"arek-muhammadiyah-be/app/service"
 	"arek-muhammadiyah-be/middleware"
-	"strconv"
-
 	"github.com/gofiber/fiber/v2"
 )
 
 func SetupTicketRoutes(app *fiber.App) {
-	tickets := app.Group("/api/tickets")
 	ticketService := service.NewTicketService()
-
-	// Protected routes
-	tickets.Use(middleware.Authorization())
-
-	// Get all tickets (admin only)
-	tickets.Get("/", middleware.AdminOnly(), func(c *fiber.Ctx) error {
-		page, _ := strconv.Atoi(c.Query("page", "1"))
-		limit, _ := strconv.Atoi(c.Query("limit", "10"))
-		statusStr := c.Query("status")
-		
-		var status *model.TicketStatus
-		if statusStr != "" {
-			s := model.TicketStatus(statusStr)
-			status = &s
-		}
-
-		tickets, pagination, err := ticketService.GetAllTickets(page, limit, status)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
-				Success: false,
-				Message: err.Error(),
-			})
-		}
-
-		return c.JSON(model.PaginatedResponse{
-			Success:    true,
-			Message:    "Tickets retrieved successfully",
-			Data:       tickets,
-			Pagination: pagination,
-		})
-	})
-
-	// Get user tickets
-	tickets.Get("/my", func(c *fiber.Ctx) error {
-		userID := c.Locals("user_id").(string)
-		page, _ := strconv.Atoi(c.Query("page", "1"))
-		limit, _ := strconv.Atoi(c.Query("limit", "10"))
-
-		tickets, pagination, err := ticketService.GetUserTickets(userID, page, limit)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
-				Success: false,
-				Message: err.Error(),
-			})
-		}
-
-		return c.JSON(model.PaginatedResponse{
-			Success:    true,
-			Message:    "User tickets retrieved successfully",
-			Data:       tickets,
-			Pagination: pagination,
-		})
-	})
-
+	tickets := app.Group("/api/tickets", middleware.Authorization())
+	
+	tickets.Get("/", middleware.AdminOnly(), ticketService.GetAllTickets())
+	// Get user tickets  
+	tickets.Get("/my", ticketService.GetUserTickets())
 	// Get ticket statistics (admin only)
-	tickets.Get("/stats", middleware.AdminOnly(), func(c *fiber.Ctx) error {
-		stats, err := ticketService.GetTicketStats()
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
-				Success: false,
-				Message: err.Error(),
-			})
-		}
-
-		return c.JSON(model.Response{
-			Success: true,
-			Message: "Ticket statistics retrieved successfully",
-			Data:    stats,
-		})
-	})
-
-	tickets.Get("/:id", func(c *fiber.Ctx) error {
-		id, _ := strconv.ParseUint(c.Params("id"), 10, 32)
-		ticket, err := ticketService.GetTicketByID(uint(id))
-		if err != nil {
-			return c.Status(fiber.StatusNotFound).JSON(model.Response{
-				Success: false,
-				Message: "Ticket not found",
-			})
-		}
-
-		return c.JSON(model.Response{
-			Success: true,
-			Message: "Ticket retrieved successfully",
-			Data:    ticket,
-		})
-	})
-
-	tickets.Post("/", func(c *fiber.Ctx) error {
-		userID := c.Locals("user_id").(string)
-		var req model.CreateTicketRequest
-		if err := c.BodyParser(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(model.Response{
-				Success: false,
-				Message: "Invalid request body",
-			})
-		}
-
-		ticket, err := ticketService.CreateTicket(userID, &req)
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(model.Response{
-				Success: false,
-				Message: err.Error(),
-			})
-		}
-
-		return c.Status(fiber.StatusCreated).JSON(model.Response{
-			Success: true,
-			Message: "Ticket created successfully",
-			Data:    ticket,
-		})
-	})
-
-	tickets.Put("/:id", middleware.AdminOnly(), func(c *fiber.Ctx) error {
-		id, _ := strconv.ParseUint(c.Params("id"), 10, 32)
-		var req model.UpdateTicketRequest
-		if err := c.BodyParser(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(model.Response{
-				Success: false,
-				Message: "Invalid request body",
-			})
-		}
-
-		ticket, err := ticketService.UpdateTicket(uint(id), &req)
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(model.Response{
-				Success: false,
-				Message: err.Error(),
-			})
-		}
-
-		return c.JSON(model.Response{
-			Success: true,
-			Message: "Ticket updated successfully",
-			Data:    ticket,
-		})
-	})
-
-	tickets.Delete("/:id", middleware.AdminOnly(), func(c *fiber.Ctx) error {
-		id, _ := strconv.ParseUint(c.Params("id"), 10, 32)
-		err := ticketService.DeleteTicket(uint(id))
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(model.Response{
-				Success: false,
-				Message: err.Error(),
-			})
-		}
-
-		return c.JSON(model.Response{
-			Success: true,
-			Message: "Ticket deleted successfully",
-		})
-	})
+	tickets.Get("/stats", middleware.AdminOnly(), ticketService.GetTicketStats())
+	// Get ticket by ID
+	tickets.Get("/:id", ticketService.GetTicketByID())
+	// Create ticket - dengan atau tanpa files
+	tickets.Post("/", ticketService.CreateTicketWithFiles())
+	// Upload files to existing ticket
+	tickets.Post("/:id/upload-files", ticketService.UploadFilesToTicket())
+	// Get ticket files
+	tickets.Get("/:id/files", ticketService.GetTicketFiles())
+	// Delete file from ticket
+	tickets.Delete("/:id/files/:fileId", ticketService.DeleteFile())
+	// Update ticket (admin only)
+	tickets.Put("/:id", middleware.AdminOnly(), ticketService.UpdateTicket())
+	// Delete ticket (admin only) 
+	tickets.Delete("/:id", middleware.AdminOnly(), ticketService.DeleteTicket())
+	// Serve file untuk download (public route)
+	app.Get("/api/files/:fileId", ticketService.ServeFile())
 }
