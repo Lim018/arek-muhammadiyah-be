@@ -16,6 +16,64 @@ func NewUserRepository() *UserRepository {
 	}
 }
 
+// --- STRUCT BARU UNTUK FILTER ---
+type UserFilterParams struct {
+	Search     string
+	CityID     string
+	DistrictID string
+}
+
+// --- FUNGSI BARU DENGAN FILTER DAN PAGINATION ---
+func (r *UserRepository) GetAllWithFilters(limit, offset int, filters UserFilterParams) ([]model.User, int64, error) {
+	var users []model.User
+	var total int64
+
+	// Mulai GORM query
+	query := r.db.Model(&model.User{})
+	
+	// --- Terapkan Filter ---
+	if filters.Search != "" {
+		// Cari di beberapa kolom
+		searchQuery := "%" + filters.Search + "%"
+		// Anda mungkin perlu menambahkan pencarian wilayah (village_name, dll)
+		// Tapi ini memerlukan JOIN yang kompleks. Untuk saat ini kita cari di data user.
+		query = query.Where(
+			"name LIKE ? OR nik LIKE ? OR telp LIKE ?", 
+			searchQuery, searchQuery, searchQuery,
+		)
+	}
+
+	if filters.DistrictID != "" && filters.DistrictID != "semua" {
+		// Filter berdasarkan district_id (lebih spesifik)
+		// "357601"
+		query = query.Where("LEFT(village_id, 6) = ?", filters.DistrictID)
+	} else if filters.CityID != "" && filters.CityID != "semua" {
+		// Filter berdasarkan city_id
+		// "3576"
+		query = query.Where("LEFT(village_id, 4) = ?", filters.CityID)
+	}
+	
+	// --- Selesaikan Query ---
+
+	// Hitung total SETELAH filter
+	err := query.Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Ambil data dengan Preload, Limit, dan Offset
+	err = query.Preload("Role").
+		Limit(limit).
+		Offset(offset).
+		Order("created_at DESC"). // Tambahkan order agar konsisten
+		Find(&users).Error
+
+	return users, total, err
+}
+
+
+// --- FUNGSI-FUNGSI ASLI ANDA (TETAP ADA) ---
+
 func (r *UserRepository) GetAll(limit, offset int) ([]model.User, int64, error) {
 	var users []model.User
 	var total int64
@@ -160,4 +218,12 @@ func (r *UserRepository) GetWilayahStats() (map[string]interface{}, error) {
 	}
 
 	return stats, nil
+}
+
+func (r *UserRepository) GetByTelp(telp string) (*model.User, error) {
+	var user model.User
+	// Menggunakan Preload "Role" agar konsisten dengan GetByID
+	err := r.db.Preload("Role").
+		First(&user, "telp = ?", telp).Error
+	return &user, err
 }

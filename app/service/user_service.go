@@ -44,7 +44,13 @@ func (s *UserService) GetAll(c *fiber.Ctx) error {
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 	offset := (page - 1) * limit
 
-	users, total, err := s.userRepo.GetAll(limit, offset)
+	filters := repository.UserFilterParams{
+		Search:     c.Query("search"),
+		CityID:     c.Query("city_id"),
+		DistrictID: c.Query("district_id"),
+	}
+
+	users, total, err := s.userRepo.GetAllWithFilters(limit, offset, filters)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
 			Success: false,
@@ -52,7 +58,6 @@ func (s *UserService) GetAll(c *fiber.Ctx) error {
 		})
 	}
 
-	// Enrich dengan data wilayah
 	for i := range users {
 		s.enrichUserWithWilayah(&users[i])
 	}

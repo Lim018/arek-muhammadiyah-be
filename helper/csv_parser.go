@@ -17,7 +17,7 @@ type CSVUserData struct {
 	Job       string `csv:"job"`
 	NIK       string `csv:"nik"`
 	Address   string `csv:"address"`
-	VillageID string `csv:"village_id"` // ID dari JSON wilayah (10 digit)
+	VillageID string `csv:"village_id"`
 	IsMobile  string `csv:"is_mobile"`
 }
 
@@ -30,13 +30,11 @@ func ParseUsersFromCSV(reader io.Reader) ([]model.CreateUserRequest, error) {
 
 	var users []model.CreateUserRequest
 	
-	// Skip header row
 	for i, record := range records {
 		if i == 0 {
 			continue
 		}
 		
-		// Minimal harus ada: id, name, nik
 		if len(record) < 3 {
 			continue
 		}
@@ -44,10 +42,9 @@ func ParseUsersFromCSV(reader io.Reader) ([]model.CreateUserRequest, error) {
 		user := model.CreateUserRequest{
 			ID:       strings.TrimSpace(record[0]),
 			Name:     strings.TrimSpace(record[1]),
-			Password: GenerateRandomString(8), // Generate random password
+			Password: GenerateRandomString(8),
 		}
 
-		// NIK (index 2)
 		if len(record) > 2 && strings.TrimSpace(record[2]) != "" {
 			nik := strings.TrimSpace(record[2])
 			user.NIK = &nik
