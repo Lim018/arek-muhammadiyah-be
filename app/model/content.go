@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+	"time"
+)
 
 type Category struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
@@ -64,7 +68,7 @@ type Ticket struct {
 }
 
 type Document struct {
-	ID          uint      `json:"id" gorm:"primaryKey"`
+	ID          uuid.UUID `json:"id" gorm:"type:char(36);primaryKey"`
 	TicketID    *uint     `json:"ticket_id" gorm:"default:null"`
 	ArticleID   *uint     `json:"article_id" gorm:"default:null"`
 	Title       string    `json:"title" gorm:"not null"`
@@ -78,4 +82,9 @@ type Document struct {
 
 	Ticket  *Ticket  `json:"ticket,omitempty" gorm:"foreignKey:TicketID"`
 	Article *Article `json:"article,omitempty" gorm:"foreignKey:ArticleID"`
+}
+
+func (d *Document) BeforeCreate(tx *gorm.DB) (err error) {
+	d.ID = uuid.New()
+	return
 }

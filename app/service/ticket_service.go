@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
+	"github.com/google/uuid"
 
 	"arek-muhammadiyah-be/app/model"
 	"arek-muhammadiyah-be/app/repository"
@@ -394,9 +395,19 @@ func (s *TicketService) GetTicketFiles() fiber.Handler {
 // DeleteFile - Hapus file dari ticket
 func (s *TicketService) DeleteFile() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		fileID, _ := strconv.ParseUint(c.Params("fileId"), 10, 32)
+		fileIDParam := c.Params("fileId")
 
-		if err := s.documentRepo.Delete(uint(fileID)); err != nil {
+		// validasi format UUID
+		fileID, err := uuid.Parse(fileIDParam)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+				Success: false,
+				Message: "Invalid file ID format",
+			})
+		}
+
+		// hapus file berdasarkan UUID
+		if err := s.documentRepo.Delete(fileID.String()); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
 				Success: false,
 				Message: err.Error(),
@@ -410,12 +421,19 @@ func (s *TicketService) DeleteFile() fiber.Handler {
 	}
 }
 
-// ServeFile - Download file
 func (s *TicketService) ServeFile() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		fileID, _ := strconv.ParseUint(c.Params("fileId"), 10, 32)
+		fileIDParam := c.Params("fileId")
 
-		document, err := s.documentRepo.GetByID(uint(fileID))
+		fileID, err := uuid.Parse(fileIDParam)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+				Success: false,
+				Message: "Invalid file ID format",
+			})
+		}
+
+		document, err := s.documentRepo.GetByID(fileID.String())
 		if err != nil {
 			return c.Status(fiber.StatusNotFound).JSON(model.Response{
 				Success: false,

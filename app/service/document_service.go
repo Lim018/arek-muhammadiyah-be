@@ -5,6 +5,7 @@ import (
 	"arek-muhammadiyah-be/app/repository"
 	"arek-muhammadiyah-be/helper"
 	"strconv"
+	"github.com/google/uuid"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -45,8 +46,18 @@ func (s *DocumentService) GetAll(c *fiber.Ctx) error {
 
 // Get document by ID
 func (s *DocumentService) GetByID(c *fiber.Ctx) error {
-	id, _ := strconv.ParseUint(c.Params("id"), 10, 32)
-	document, err := s.documentRepo.GetByID(uint(id))
+	idParam := c.Params("id")
+
+	// validasi format UUID
+	id, err := uuid.Parse(idParam)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+			Success: false,
+			Message: "Invalid document ID format",
+		})
+	}
+
+	document, err := s.documentRepo.GetByID(id.String())
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(model.Response{
 			Success: false,
@@ -162,16 +173,27 @@ func (s *DocumentService) Create(c *fiber.Ctx) error {
 }
 
 func (s *DocumentService) Delete(c *fiber.Ctx) error {
-	id, _ := strconv.ParseUint(c.Params("id"), 10, 32)
+	idParam := c.Params("id")
 
-	if _, err := s.documentRepo.GetByID(uint(id)); err != nil {
+	// validasi format UUID
+	id, err := uuid.Parse(idParam)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+			Success: false,
+			Message: "Invalid document ID format",
+		})
+	}
+
+	// cek apakah dokumen ada
+	if _, err := s.documentRepo.GetByID(id.String()); err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(model.Response{
 			Success: false,
 			Message: "Document not found",
 		})
 	}
 
-	if err := s.documentRepo.Delete(uint(id)); err != nil {
+	// hapus dokumen
+	if err := s.documentRepo.Delete(id.String()); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
 			Success: false,
 			Message: err.Error(),

@@ -4,6 +4,7 @@ import (
 	"arek-muhammadiyah-be/app/model"
 	"arek-muhammadiyah-be/database"
 	"gorm.io/gorm"
+	"github.com/google/uuid"
 )
 
 type DocumentRepository struct {
@@ -35,13 +36,24 @@ func (r *DocumentRepository) GetAll(limit, offset int) ([]model.Document, int64,
 	return documents, total, err
 }
 
-func (r *DocumentRepository) GetByID(id uint) (*model.Document, error) {
+func (r *DocumentRepository) GetByID(id string) (*model.Document, error) {
 	var document model.Document
-	err := r.db.
+
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.db.
 		Preload("Ticket").
 		Preload("Article").
-		First(&document, id).Error
-	return &document, err
+		First(&document, "id = ?", uid).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &document, nil
 }
 
 func (r *DocumentRepository) GetByTicketID(ticketID uint, limit, offset int) ([]model.Document, int64, error) {
@@ -94,7 +106,7 @@ func (r *DocumentRepository) Update(id uint, document *model.Document) error {
 	return r.db.Where("id = ?", id).Updates(document).Error
 }
 
-func (r *DocumentRepository) Delete(id uint) error {
-	return r.db.Delete(&model.Document{}, id).Error
+func (r *DocumentRepository) Delete(id string) error {
+	return r.db.Delete(&model.Document{}, "id = ?", id).Error
 }
 
