@@ -19,3 +19,13 @@ logs/
 Thumbs.db
 .idea/
 .vscode/
+
+# uploads folder keep
+uploads/**
+!uploads/
+!uploads/articles/
+!uploads/tickets/
+uploads/articles/**
+uploads/tickets/**
+!uploads/articles/.gitkeep
+!uploads/tickets/.gitkeep
