@@ -1,9 +1,10 @@
 package model
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Category struct {
@@ -64,7 +65,7 @@ type Ticket struct {
 	// Relations
 	User      *User      `json:"user,omitempty" gorm:"foreignKey:UserID"`
 	Category  *Category  `json:"category,omitempty" gorm:"foreignKey:CategoryID"`
-	Documents []Document `json:"documents,omitempty" gorm:"foreignKey:TicketID"`
+	Documents []Document `json:"documents,omitempty" gorm:"foreignKey:TicketID;constraint:OnDelete:CASCADE"`
 }
 
 type Document struct {
@@ -80,8 +81,8 @@ type Document struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 
-	Ticket  *Ticket  `json:"ticket,omitempty" gorm:"foreignKey:TicketID"`
-	Article *Article `json:"article,omitempty" gorm:"foreignKey:ArticleID"`
+	Ticket  *Ticket  `json:"ticket,omitempty" gorm:"foreignKey:TicketID;constraint:OnDelete:CASCADE"`
+	Article *Article `json:"article,omitempty" gorm:"foreignKey:ArticleID;constraint:OnDelete:CASCADE"`
 }
 
 func (d *Document) BeforeCreate(tx *gorm.DB) (err error) {

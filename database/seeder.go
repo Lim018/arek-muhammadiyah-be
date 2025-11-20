@@ -60,9 +60,9 @@ func RunSeeders() {
 
 	categories := []model.Category{
 		{Name: "Pendidikan", Description: &pendidikanDesc, Color: "#3B82F6", Icon: "book"},
-		{Name: "Kesehatan", Description: &kesehatanDesc, Color: "#10B981", Icon: "heart"},
-		{Name: "Ekonomi", Description: &ekonomiDesc, Color: "#F59E0B", Icon: "chart"},
-		{Name: "Keagamaan", Description: &keagamaanDesc, Color: "#8B5CF6", Icon: "mosque"},
+		{Name: "Kesehatan", Description: &kesehatanDesc, Color: "#3B82F6", Icon: "heart"},
+		{Name: "Ekonomi", Description: &ekonomiDesc, Color: "#3B82F6", Icon: "chart"},
+		{Name: "Keagamaan", Description: &keagamaanDesc, Color: "#3B82F6", Icon: "mosque"},
 	}
 	for _, c := range categories {
 		DB.FirstOrCreate(&c, model.Category{Name: c.Name})
