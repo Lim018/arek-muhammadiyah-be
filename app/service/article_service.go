@@ -145,3 +145,21 @@ func (s *ArticleService) DeleteArticle(id uint) error {
 	// Tidak perlu loop untuk hapus dokumen, repo.Delete akan menanganinya
 	return s.articleRepo.Delete(id)
 }
+
+func (s *ArticleService) GetArticlesByCategory(categoryID uint, page, limit int) ([]model.Article, model.Pagination, error) {
+	offset := (page - 1) * limit
+
+	articles, err := s.articleRepo.GetByCategory(categoryID, limit, offset)
+	if err != nil {
+		return nil, model.Pagination{}, err
+	}
+
+	total := int64(len(articles))
+	if total == 0 {
+		return []model.Article{}, helper.CreatePagination(int64(page), int64(limit), 0), nil
+	}
+
+	pagination := helper.CreatePagination(int64(page), int64(limit), total)
+
+	return articles, pagination, nil
+}

@@ -78,6 +78,36 @@ func SetupArticleRoutes(app *fiber.App) {
 	// Protected routes
 	articles.Use(middleware.Authorization())
 
+	articles.Get("/category/:categoryID", func(c *fiber.Ctx) error {
+    categoryIDParam := c.Params("categoryID")
+    categoryID, err := strconv.ParseUint(categoryIDParam, 10, 64)
+    if err != nil {
+        return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+            Success: false,
+            Message: "Invalid category ID",
+        })
+    }
+
+    page, _ := strconv.Atoi(c.Query("page", "1"))
+    limit, _ := strconv.Atoi(c.Query("limit", "10"))
+
+    articles, pagination, err := articleService.GetArticlesByCategory(uint(categoryID), page, limit)
+    if err != nil {
+        return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+            Success: false,
+            Message: err.Error(),
+        })
+    }
+
+    return c.JSON(model.PaginatedResponse{
+        Success:    true,
+        Message:    "Articles filtered by category retrieved successfully",
+        Data:       articles,
+        Pagination: pagination,
+    })
+})
+
+
 	articles.Post("/", func(c *fiber.Ctx) error {
 		userID := c.Locals("user_id").(string)
 		var req model.CreateArticleRequest
