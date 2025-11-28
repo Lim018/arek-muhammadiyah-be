@@ -143,3 +143,52 @@ func (s *AuthService) GetNavbar(c *fiber.Ctx) error {
 		},
 	})
 }
+
+func (s *AuthService) Register(c *fiber.Ctx) error {
+	var req model.CreateUserRequest // Pastikan struct ini punya field Name, Telp, Password
+	if err := c.BodyParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+					Success: false,
+					Message: "Invalid request body",
+			})
+	}
+
+	
+	// 2. Hash Password
+	hashedPassword, err := utils.HashPassword(req.Password)
+	if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+					Success: false,
+					Message: "Failed to hash password",
+			})
+	}
+
+	// 3. Set Default Values untuk User HP
+	// PENTING: Hardcode RoleID agar user tidak bisa jadi admin lewat API ini
+	defaultRoleID := uint(3) // Sesuaikan dengan ID role "Warga" atau "User" di DB kamu
+	isMobile := true
+
+	user := &model.User{
+			Name:      req.Name,
+			Password:  hashedPassword,
+			Telp:      req.Telp,
+			RoleID:    &defaultRoleID, // Paksa jadi User biasa
+			IsMobile:  isMobile,       // Paksa jadi Mobile User
+			
+	}
+
+	// 4. Simpan ke Database
+	if err := s.userRepo.Create(user); err != nil {
+			// Handle error duplicate entry (misal telp sudah ada)
+			return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+					Success: false,
+					Message: "Gagal registrasi: " + err.Error(),
+			})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(model.Response{
+			Success: true,
+			Message: "Registrasi berhasil, silakan login",
+			Data:    user,
+	})
+}

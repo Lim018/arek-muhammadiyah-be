@@ -14,7 +14,7 @@ func SetupUserRoutes(app *fiber.App, wilayahService *service.WilayahService) {
 	users.Get("/mobile", userService.GetMobileUsers)
 	users.Get("/:id", userService.GetByID)
 	users.Post("/", middleware.AdminOnly(), userService.CreateUser)
-	users.Put("/:id", middleware.AdminOnly(), userService.Update)
+	users.Put("/:id", userService.Update)
 	users.Delete("/:id", middleware.AdminOnly(), userService.Delete)
 	users.Get("/gender/:gender", userService.GetByGender)
 	
