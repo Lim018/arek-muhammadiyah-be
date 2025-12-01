@@ -28,7 +28,7 @@ func SetupTicketRoutes(app *fiber.App) {
 	// Update ticket (admin only)
 	tickets.Put("/:id", middleware.AdminOnly(), ticketService.UpdateTicket())
 	// Delete ticket (admin only) 
-	tickets.Delete("/:id", middleware.AdminOnly(), ticketService.DeleteTicket())
+	tickets.Delete("/:id", ticketService.DeleteTicket())
 	// Serve file untuk download (public route)
 	app.Get("/api/files/:fileId", ticketService.ServeFile())
 }
