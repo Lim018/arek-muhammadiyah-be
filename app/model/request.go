@@ -32,7 +32,9 @@ type UpdateUserRequest struct {
 	VillageID *string    `json:"village_id"`
 	NIK       *string    `json:"nik"`
 	Address   *string    `json:"address"`
+	Password  *string    `json:"password"` 
 }
+
 
 type CreateArticleRequest struct {
 	CategoryID   *uint                   `json:"category_id"`

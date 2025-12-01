@@ -7,6 +7,7 @@ import (
 	"arek-muhammadiyah-be/helper/utils"
 	"strconv"
 
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -143,6 +144,7 @@ func (s *UserService) CreateUser(c *fiber.Ctx) error {
 func (s *UserService) Update(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var req model.UpdateUserRequest
+
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
 			Success: false,
@@ -158,6 +160,20 @@ func (s *UserService) Update(c *fiber.Ctx) error {
 		})
 	}
 
+	var updatedPassword *string
+	if req.Password != nil {
+		hashed, err := utils.HashPassword(*req.Password)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+				Success: false,
+				Message: "Failed to hash password",
+			})
+		}
+		updatedPassword = &hashed
+	} else {
+		updatedPassword = &existing.Password
+	}
+
 	updateData := &model.User{
 		Name:      helper.GetStringValue(req.Name, existing.Name),
 		BirthDate: req.BirthDate,
@@ -168,6 +184,7 @@ func (s *UserService) Update(c *fiber.Ctx) error {
 		VillageID: helper.GetStringPointer(req.VillageID, existing.VillageID),
 		NIK:       helper.GetStringPointer(req.NIK, existing.NIK),
 		Address:   helper.GetStringPointer(req.Address, existing.Address),
+		Password:  *updatedPassword, 
 	}
 
 	if err := s.userRepo.Update(id, updateData); err != nil {
