@@ -21,7 +21,6 @@ func NewAuthService(wilayahService *WilayahService) *AuthService {
 	}
 }
 
-// enrichUserWithWilayah - Tambahkan info wilayah ke user
 func (s *AuthService) enrichUserWithWilayah(user *model.User) {
 	if user.VillageID != nil && *user.VillageID != "" {
 		cityName, districtName, villageName := s.wilayahService.GetWilayahInfo(*user.VillageID)
@@ -29,8 +28,6 @@ func (s *AuthService) enrichUserWithWilayah(user *model.User) {
 		user.DistrictName = districtName
 		user.CityName = cityName
 		
-		// Extract IDs from village_id
-		// Format: "3576011001" -> city: "3576", district: "357601"
 		if len(*user.VillageID) >= 6 {
 			user.CityID = (*user.VillageID)[:4]
 			user.DistrictID = (*user.VillageID)[:6]
@@ -38,7 +35,6 @@ func (s *AuthService) enrichUserWithWilayah(user *model.User) {
 	}
 }
 
-// Login handler
 func (s *AuthService) Login(c *fiber.Ctx) error {
 	var req model.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -48,17 +44,13 @@ func (s *AuthService) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	// --- PERUBAHAN DI SINI ---
-	// Mengganti GetByID(req.ID) menjadi GetByTelp(req.Telp)
 	user, err := s.userRepo.GetByTelp(req.Telp)
 	if err != nil {
-		// userRepo.GetByID(req.ID) ->
 		return c.Status(fiber.StatusUnauthorized).JSON(model.Response{
 			Success: false,
 			Message: "Invalid credentials",
 		})
 	}
-	// --- AKHIR PERUBAHAN ---
 
 	if !utils.CheckPasswordHash(req.Password, user.Password) {
 		return c.Status(fiber.StatusUnauthorized).JSON(model.Response{
@@ -67,14 +59,23 @@ func (s *AuthService) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	// Enrich dengan data wilayah
 	s.enrichUserWithWilayah(user)
 
-	token, err := utils.GenerateToken(fmt.Sprintf("%d", user.ID), user.RoleID)
+	// Generate Access Token (1 jam)
+	accessToken, err := utils.GenerateAccessToken(fmt.Sprintf("%d", user.ID), user.RoleID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
 			Success: false,
-			Message: "Failed to generate token",
+			Message: "Failed to generate access token",
+		})
+	}
+
+	// Generate Refresh Token (30 hari)
+	refreshToken, err := utils.GenerateRefreshToken(fmt.Sprintf("%d", user.ID))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: "Failed to generate refresh token",
 		})
 	}
 
@@ -82,8 +83,65 @@ func (s *AuthService) Login(c *fiber.Ctx) error {
 		Success: true,
 		Message: "Login successful",
 		Data: fiber.Map{
-			"user":  user,
-			"token": token,
+			"user":          user,
+			"access_token":  accessToken,
+			"refresh_token": refreshToken,
+		},
+	})
+}
+
+// RefreshToken handler - Generate new access token using refresh token
+func (s *AuthService) RefreshToken(c *fiber.Ctx) error {
+	var req struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+			Success: false,
+			Message: "Invalid request body",
+		})
+	}
+
+	if req.RefreshToken == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+			Success: false,
+			Message: "Refresh token is required",
+		})
+	}
+
+	// Validate refresh token
+	claims, err := utils.ValidateRefreshToken(req.RefreshToken)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(model.Response{
+			Success: false,
+			Message: "Invalid or expired refresh token",
+		})
+	}
+
+	// Get user dari database untuk mendapatkan roleID terbaru
+	user, err := s.userRepo.GetByID(claims.UserID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(model.Response{
+			Success: false,
+			Message: "User not found",
+		})
+	}
+
+	// Generate new access token
+	accessToken, err := utils.GenerateAccessToken(claims.UserID, user.RoleID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: "Failed to generate access token",
+		})
+	}
+
+	return c.JSON(model.Response{
+		Success: true,
+		Message: "Token refreshed successfully",
+		Data: fiber.Map{
+			"access_token": accessToken,
 		},
 	})
 }

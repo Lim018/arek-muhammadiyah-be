@@ -17,9 +17,10 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	DBSSLMode  string
-	JWTSecret  string
-	JWTExpire  string
-	LogLevel   string
+	JWTSecret        string
+	JWTExpire        string
+	JWTRefreshSecret string
+	LogLevel         string
 	LogPath    string
 }
 
@@ -41,8 +42,9 @@ func LoadEnv() {
 		DBPassword: getEnv("DB_PASSWORD", ""),
 		DBName:     getEnv("DB_NAME", ""),
 		DBSSLMode:  getEnv("DB_SSLMODE", ""),
-		JWTSecret:  getEnv("JWT_SECRET", ""),
-		JWTExpire:  getEnv("JWT_EXPIRE", ""),
+		JWTSecret:        getEnv("JWT_SECRET", ""),
+		JWTExpire:        getEnv("JWT_EXPIRE", ""),
+		JWTRefreshSecret: getEnv("JWT_REFRESH_SECRET", ""),
 		LogLevel:   getEnv("LOG_LEVEL", ""),
 		LogPath:    getEnv("LOG_FILE_PATH", ""),
 	}
