@@ -8,7 +8,7 @@ type User struct {
 	Password  string     `json:"-" gorm:"not null"`
 	BirthDate *time.Time `json:"birth_date"`
 	Telp      *string    `json:"telp"`
-	Gender    *string    `json:"gender" gorm:"type:varchar(20)"` // male, female
+	Gender    *string    `json:"gender" gorm:"type:varchar(20)"`
 	Job       *string    `json:"job"`
 	RoleID    *uint      `json:"role_id"`
 
