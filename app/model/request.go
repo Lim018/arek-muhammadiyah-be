@@ -74,3 +74,9 @@ type CreateCategoryRequest struct {
 	Color       *string `json:"color"`
 	IsActive    *bool   `json:"is_active"`
 }
+
+type ForgotPasswordRequest struct {
+	Name      string `json:"name"`
+	BirthDate string `json:"birth_date"` // "YYYY-MM-DD"
+	NIK       string `json:"nik"`
+}

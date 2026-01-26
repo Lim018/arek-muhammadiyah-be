@@ -4,6 +4,7 @@ import (
 	"arek-muhammadiyah-be/app/model"
 	"arek-muhammadiyah-be/database"
 	"gorm.io/gorm"
+	"time"
 )
 
 type UserRepository struct {
@@ -227,3 +228,19 @@ func (r *UserRepository) GetByTelp(telp string) (*model.User, error) {
 		First(&user, "telp = ?", telp).Error
 	return &user, err
 }
+
+func (r *UserRepository) GetByPersonalData(name string, birthDate time.Time, nik string) (*model.User, error) {
+	var user model.User
+	err := r.db.Preload("Role").
+		Where(&model.User{
+			Name:      name,
+			BirthDate: &birthDate,
+			NIK:       &nik,
+		}).
+		First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+

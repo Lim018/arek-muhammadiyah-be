@@ -5,6 +5,7 @@ import (
 	"arek-muhammadiyah-be/app/repository"
 	"arek-muhammadiyah-be/helper/utils"
 	"fmt"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -248,5 +249,52 @@ func (s *AuthService) Register(c *fiber.Ctx) error {
 			Success: true,
 			Message: "Registrasi berhasil, silakan login",
 			Data:    user,
+	})
+}
+
+func (s *AuthService) ForgotPasswordResetDefault(c *fiber.Ctx) error {
+	var req model.ForgotPasswordRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "Invalid request body",
+		})
+	}
+
+	// Parse birth date
+	birthDate, err := time.Parse("2006-01-02", req.BirthDate)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "Invalid birth_date format",
+		})
+	}
+
+	// Ambil user lewat repository
+	user, err := s.userRepo.GetByPersonalData(req.Name, birthDate, req.NIK)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"success": false,
+			"message": "Data user tidak ditemukan",
+		})
+	}
+
+	// Reset password default
+	defaultPassword := "password123"
+	hashedPassword, _ := utils.HashPassword(defaultPassword)
+	user.Password = hashedPassword
+	user.ForceChangePassword = true
+
+	// Update user
+	if err := s.userRepo.Update(fmt.Sprintf("%d", user.ID), user); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success": false,
+			"message": "Gagal reset password",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Password berhasil di-reset ke default",
 	})
 }

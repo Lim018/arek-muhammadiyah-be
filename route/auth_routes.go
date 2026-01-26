@@ -14,6 +14,7 @@ func SetupAuthRoutes(app *fiber.App, wilayahService *service.WilayahService) {
 	auth.Post("/login", authService.Login)
 	auth.Post("/register", authService.Register)
 	auth.Post("/refresh", authService.RefreshToken)
+	auth.Post("/forgot", authService.ForgotPasswordResetDefault)
 	
 	// Protected routes
 	auth.Post("/logout", middleware.Authorization(), authService.Logout)
