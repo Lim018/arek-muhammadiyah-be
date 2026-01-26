@@ -3,30 +3,31 @@ package model
 import "time"
 
 type User struct {
-	ID         uint       `json:"id" gorm:"primaryKey"`
-	Name       string     `json:"name" gorm:"not null"`
-	Password   string     `json:"-" gorm:"not null"`
-	BirthDate  *time.Time `json:"birth_date"`
-	Telp       *string    `json:"telp"`
-	Gender     *string    `json:"gender" gorm:"type:varchar(20)"` // male, female
-	Job        *string    `json:"job"`
-	RoleID     *uint      `json:"role_id"`
-	
+	ID        uint       `json:"id" gorm:"primaryKey"`
+	Name      string     `json:"name" gorm:"not null"`
+	Password  string     `json:"-" gorm:"not null"`
+	BirthDate *time.Time `json:"birth_date"`
+	Telp      *string    `json:"telp"`
+	Gender    *string    `json:"gender" gorm:"type:varchar(20)"` // male, female
+	Job       *string    `json:"job"`
+	RoleID    *uint      `json:"role_id"`
+
 	// Wilayah - hanya simpan Village ID (Kelurahan)
-	VillageID  *string    `json:"village_id" gorm:"type:varchar(20);index"` // ID dari JSON (contoh: "3576011001")
-	
-	NIK        *string    `json:"nik" gorm:"unique"`
-	Address    *string    `json:"address"`
-	IsMobile   bool       `json:"is_mobile" gorm:"default:false"`
-	CreatedAt  time.Time  `json:"created_at"`
-	UpdatedAt  time.Time  `json:"updated_at"`
+	VillageID *string `json:"village_id" gorm:"type:varchar(20);index"` // ID dari JSON (contoh: "3576011001")
+
+	NIK                 *string   `json:"nik" gorm:"unique"`
+	Address             *string   `json:"address"`
+	IsMobile            bool      `json:"is_mobile" gorm:"default:false"`
+	ForceChangePassword bool      `json:"force_change_password" gorm:"default:true"`
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
 
 	// Relations
 	Role     *Role     `json:"role,omitempty" gorm:"foreignKey:RoleID"`
 	Articles []Article `json:"articles,omitempty"`
 	Tickets  []Ticket  `json:"tickets,omitempty"`
 	// Documents []Document `json:"documents,omitempty"`
-	
+
 	// Virtual fields - akan diisi dari JSON saat query
 	VillageName  string `json:"village_name,omitempty" gorm:"-"`
 	DistrictID   string `json:"district_id,omitempty" gorm:"-"`
