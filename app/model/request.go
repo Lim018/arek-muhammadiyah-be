@@ -8,18 +8,19 @@ type LoginRequest struct {
 }
 
 type CreateUserRequest struct {
-	ID        string     `json:"id" validate:"required"`
-	Name      string     `json:"name" validate:"required"`
-	Password  string     `json:"password" validate:"required,min=6"`
-	BirthDate *time.Time `json:"birth_date"`
-	Telp      *string    `json:"telp"`
-	Gender    *string    `json:"gender"`
-	Job       *string    `json:"job"`
-	RoleID    *uint      `json:"role_id"`
-	VillageID *string    `json:"village_id"`
-	NIK       *string    `json:"nik"`
-	Address   *string    `json:"address"`
-	IsMobile  *bool      `json:"is_mobile"`
+	ID                  string     `json:"id" validate:"required"`
+	Name                string     `json:"name" validate:"required"`
+	Password            string     `json:"password" validate:"required,min=6"`
+	BirthDate           *time.Time `json:"birth_date"`
+	Telp                *string    `json:"telp"`
+	Gender              *string    `json:"gender"`
+	Job                 *string    `json:"job"`
+	RoleID              *uint      `json:"role_id"`
+	VillageID           *string    `json:"village_id"`
+	NIK                 *string    `json:"nik"`
+	Address             *string    `json:"address"`
+	IsMobile            *bool      `json:"is_mobile"`
+	ForceChangePassword *bool      `json:"force_change_password"`
 }
 
 type UpdateUserRequest struct {
@@ -32,9 +33,8 @@ type UpdateUserRequest struct {
 	VillageID *string    `json:"village_id"`
 	NIK       *string    `json:"nik"`
 	Address   *string    `json:"address"`
-	Password  *string    `json:"password"` 
+	Password  *string    `json:"password"`
 }
-
 
 type CreateArticleRequest struct {
 	CategoryID   *uint                   `json:"category_id"`
@@ -49,7 +49,7 @@ type CreateTicketRequest struct {
 	CategoryID  *uint                   `json:"category_id"`
 	Title       string                  `json:"title" validate:"required"`
 	Description string                  `json:"description" validate:"required"`
-	Documents    []CreateDocumentRequest `json:"documents,omitempty"`
+	Documents   []CreateDocumentRequest `json:"documents,omitempty"`
 }
 
 type UpdateTicketRequest struct {
@@ -79,5 +79,5 @@ type ForgotPasswordRequest struct {
 	Name      string `json:"name"`
 	BirthDate string `json:"birth_date"` // "YYYY-MM-DD"
 	NIK       string `json:"nik"`
-	Telp			string `json:"telp"`
+	Telp      string `json:"telp"`
 }

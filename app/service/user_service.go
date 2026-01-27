@@ -110,6 +110,8 @@ func (s *UserService) CreateUser(c *fiber.Ctx) error {
 		})
 	}
 
+	forceChangePassword := helper.GetBoolValue(req.ForceChangePassword, true)
+	isMobile := helper.GetBoolValue(req.IsMobile, false)
 	user := &model.User{
 		Name:      req.Name,
 		Password:  hashedPassword,
@@ -118,10 +120,11 @@ func (s *UserService) CreateUser(c *fiber.Ctx) error {
 		Gender:    req.Gender,
 		Job:       req.Job,
 		RoleID:    req.RoleID,
-		VillageID: req.VillageID, // Simpan village_id dari JSON
+		VillageID: req.VillageID, 
 		NIK:       req.NIK,
 		Address:   req.Address,
-		IsMobile:  helper.GetBoolValue(req.IsMobile, false),
+		IsMobile:  isMobile,
+		ForceChangePassword: &forceChangePassword,
 	}
 
 	if err := s.userRepo.Create(user); err != nil {
