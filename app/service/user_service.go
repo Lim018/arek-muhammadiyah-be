@@ -190,6 +190,12 @@ func (s *UserService) Update(c *fiber.Ctx) error {
 		Password:  *updatedPassword, 
 	}
 
+	if req.ForceChangePassword != nil {
+		updateData.ForceChangePassword = req.ForceChangePassword
+	} else {
+		updateData.ForceChangePassword = existing.ForceChangePassword
+	}
+
 	if err := s.userRepo.Update(id, updateData); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
 			Success: false,

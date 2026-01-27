@@ -34,6 +34,7 @@ type UpdateUserRequest struct {
 	NIK       *string    `json:"nik"`
 	Address   *string    `json:"address"`
 	Password  *string    `json:"password"`
+	ForceChangePassword *bool      `json:"force_change_password"`
 }
 
 type CreateArticleRequest struct {
