@@ -271,7 +271,7 @@ func (s *AuthService) ForgotPasswordResetDefault(c *fiber.Ctx) error {
 	}
 
 	// Ambil user lewat repository
-	user, err := s.userRepo.GetByPersonalData(req.Name, birthDate, req.NIK)
+	user, err := s.userRepo.GetByPersonalData(req.Name, birthDate, req.NIK, req.Telp)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"success": false,

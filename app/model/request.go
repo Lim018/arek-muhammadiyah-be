@@ -79,4 +79,5 @@ type ForgotPasswordRequest struct {
 	Name      string `json:"name"`
 	BirthDate string `json:"birth_date"` // "YYYY-MM-DD"
 	NIK       string `json:"nik"`
+	Telp			string `json:"telp"`
 }

@@ -229,13 +229,14 @@ func (r *UserRepository) GetByTelp(telp string) (*model.User, error) {
 	return &user, err
 }
 
-func (r *UserRepository) GetByPersonalData(name string, birthDate time.Time, nik string) (*model.User, error) {
+func (r *UserRepository) GetByPersonalData(name string, birthDate time.Time, nik string, telp string) (*model.User, error) {
 	var user model.User
 	err := r.db.Preload("Role").
 		Where(&model.User{
 			Name:      name,
 			BirthDate: &birthDate,
 			NIK:       &nik,
+			Telp:      &telp,
 		}).
 		First(&user).Error
 	if err != nil {
