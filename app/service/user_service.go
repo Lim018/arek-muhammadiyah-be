@@ -124,7 +124,7 @@ func (s *UserService) CreateUser(c *fiber.Ctx) error {
 		NIK:       req.NIK,
 		Address:   req.Address,
 		IsMobile:  isMobile,
-		ForceChangePassword: &forceChangePassword,
+		ForceChangePassword: forceChangePassword,
 	}
 
 	if err := s.userRepo.Create(user); err != nil {
@@ -191,7 +191,7 @@ func (s *UserService) Update(c *fiber.Ctx) error {
 	}
 
 	if req.ForceChangePassword != nil {
-		updateData.ForceChangePassword = req.ForceChangePassword
+		updateData.ForceChangePassword = *req.ForceChangePassword
 	} else {
 		updateData.ForceChangePassword = existing.ForceChangePassword
 	}

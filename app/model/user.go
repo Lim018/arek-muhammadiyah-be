@@ -18,7 +18,7 @@ type User struct {
 	NIK                 *string   `json:"nik" gorm:"unique"`
 	Address             *string   `json:"address"`
 	IsMobile            bool      `json:"is_mobile" gorm:"default:false"`
-	ForceChangePassword *bool      `json:"force_change_password" gorm:"default:true"`
+	ForceChangePassword bool      `json:"force_change_password"`
 	CreatedAt           time.Time `json:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at"`
 

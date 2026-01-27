@@ -226,7 +226,6 @@ func (s *AuthService) Register(c *fiber.Ctx) error {
 	// PENTING: Hardcode RoleID agar user tidak bisa jadi admin lewat API ini
 	defaultRoleID := uint(3) // Sesuaikan dengan ID role "Warga" atau "User" di DB kamu
 	isMobile := true
-	forcechangepassword := false
 	
 
 	user := &model.User{
@@ -235,7 +234,7 @@ func (s *AuthService) Register(c *fiber.Ctx) error {
 			Telp:      req.Telp,
 			RoleID:    &defaultRoleID, 
 			IsMobile:  isMobile,   
-			ForceChangePassword: &forcechangepassword,
+			ForceChangePassword: false,
 	}
 
 	// 4. Simpan ke Database
@@ -285,8 +284,7 @@ func (s *AuthService) ForgotPasswordResetDefault(c *fiber.Ctx) error {
 	defaultPassword := "password123"
 	hashedPassword, _ := utils.HashPassword(defaultPassword)
 	user.Password = hashedPassword
-	forceTrue := true
-  user.ForceChangePassword = &forceTrue
+  user.ForceChangePassword =  true
 
 	// Update user
 	if err := s.userRepo.Update(fmt.Sprintf("%d", user.ID), user); err != nil {
