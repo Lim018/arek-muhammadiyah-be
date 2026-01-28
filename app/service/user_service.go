@@ -352,3 +352,60 @@ func (s *UserService) GetByDistrict(c *fiber.Ctx) error {
 		Pagination: pagination,
 	})
 }
+
+func (s *UserService) ResetPassword(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var req struct {
+		NewPassword string `json:"new_password"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+			Success: false,
+			Message: "Invalid request body",
+		})
+	}
+
+	if req.NewPassword == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+			Success: false,
+			Message: "new_password is required",
+		})
+	}
+
+	user, err := s.userRepo.GetByID(id)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(model.Response{
+			Success: false,
+			Message: "User not found",
+		})
+	}
+
+	hashedPassword, err := utils.HashPassword(req.NewPassword)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: "Failed to hash password",
+		})
+	}
+
+	user.Password = hashedPassword
+	user.ForceChangePassword = true
+
+	if err := s.userRepo.Update(id, user); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			Success: false,
+			Message: "Failed to reset password",
+		})
+	}
+
+	return c.JSON(model.Response{
+		Success: true,
+		Message: "Password berhasil di-update",
+		Data: fiber.Map{
+			"user_id":   user.ID,
+			"user_name": user.Name,
+		},
+	})
+}

@@ -18,7 +18,8 @@ func SetupUserRoutes(app *fiber.App, wilayahService *service.WilayahService) {
 	users.Delete("/:id", middleware.AdminOnly(), userService.Delete)
 	users.Get("/gender/:gender", userService.GetByGender)
 	
-	// Filter by wilayah
 	users.Get("/city/:cityId", userService.GetByCity)
 	users.Get("/district/:districtId", userService.GetByDistrict)
+
+	users.Post("/:id/reset-password", middleware.AdminOnly(), userService.ResetPassword)
 }
