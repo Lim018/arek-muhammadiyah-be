@@ -86,7 +86,6 @@ func RunSeeders() {
 		Gender:    ptr("male"),
 		Job:       ptr("System Administrator"),
 		RoleID:    uintPtr(roleMap["admin"]),
-		VillageID: ptr("3578011001"),
 		NIK:       ptr("3578010101900001"),
 		Address:   ptr("Kantor Pusat"),
 		IsMobile:  false,
