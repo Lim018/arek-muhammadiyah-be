@@ -4,9 +4,14 @@ import (
 	"arek-muhammadiyah-be/app/model"
 	"arek-muhammadiyah-be/app/service"
 	"arek-muhammadiyah-be/middleware"
+	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 func SetupArticleRoutes(app *fiber.App) {
@@ -110,12 +115,108 @@ func SetupArticleRoutes(app *fiber.App) {
 
 	articles.Post("/", func(c *fiber.Ctx) error {
 		userID := c.Locals("user_id").(string)
+
+		// Check Content-Type untuk menentukan cara parsing
+		contentType := c.Get("Content-Type")
 		var req model.CreateArticleRequest
-		if err := c.BodyParser(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(model.Response{
-				Success: false,
-				Message: "Invalid request body",
-			})
+
+		if len(contentType) >= 19 && contentType[:19] == "multipart/form-data" {
+			// Parse multipart form data
+			form, err := c.MultipartForm()
+			if err != nil {
+				return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+					Success: false,
+					Message: "Failed to parse form data: " + err.Error(),
+				})
+			}
+
+			// Extract title
+			if titles, ok := form.Value["title"]; ok && len(titles) > 0 {
+				req.Title = titles[0]
+			}
+
+			// Extract content
+			if contents, ok := form.Value["content"]; ok && len(contents) > 0 {
+				req.Content = contents[0]
+			}
+
+			// Extract category_id
+			if categoryIDs, ok := form.Value["category_id"]; ok && len(categoryIDs) > 0 && categoryIDs[0] != "" {
+				catID, err := strconv.ParseUint(categoryIDs[0], 10, 32)
+				if err == nil {
+					catUint := uint(catID)
+					req.CategoryID = &catUint
+				}
+			}
+
+			// Extract is_published
+			if isPublished, ok := form.Value["is_published"]; ok && len(isPublished) > 0 {
+				published := isPublished[0] == "true"
+				req.IsPublished = &published
+			}
+
+			// Handle feature_image upload
+			if files, ok := form.File["feature_image"]; ok && len(files) > 0 {
+				file := files[0]
+
+				// Generate unique filename
+				ext := filepath.Ext(file.Filename)
+				newFileName := fmt.Sprintf("feature_%s_%d%s", uuid.New().String()[:8], time.Now().Unix(), ext)
+				uploadPath := filepath.Join("uploads", "articles", newFileName)
+
+				// Ensure directory exists
+				if err := os.MkdirAll(filepath.Dir(uploadPath), 0755); err != nil {
+					return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+						Success: false,
+						Message: "Failed to create upload directory",
+					})
+				}
+
+				// Save file
+				if err := c.SaveFile(file, uploadPath); err != nil {
+					return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+						Success: false,
+						Message: "Failed to save feature image",
+					})
+				}
+
+				req.FeatureImage = &uploadPath
+			}
+
+			// Handle document uploads (lampiran)
+			if files, ok := form.File["documents"]; ok {
+				for _, file := range files {
+					ext := filepath.Ext(file.Filename)
+					newFileName := fmt.Sprintf("doc_%s_%d%s", uuid.New().String()[:8], time.Now().Unix(), ext)
+					uploadPath := filepath.Join("uploads", "documents", newFileName)
+
+					if err := os.MkdirAll(filepath.Dir(uploadPath), 0755); err != nil {
+						continue
+					}
+
+					if err := c.SaveFile(file, uploadPath); err != nil {
+						continue
+					}
+
+					fileSize := file.Size
+					mimeType := file.Header.Get("Content-Type")
+					req.Documents = append(req.Documents, model.CreateDocumentRequest{
+						Title:    file.Filename,
+						FilePath: uploadPath,
+						FileName: file.Filename,
+						FileSize: &fileSize,
+						MimeType: &mimeType,
+					})
+				}
+			}
+		} else {
+			// Fallback ke JSON parsing
+			if err := c.BodyParser(&req); err != nil {
+				return c.Status(fiber.StatusBadRequest).JSON(model.Response{
+					Success: false,
+					Message: "Invalid request body",
+				})
+			}
 		}
 
 		article, err := articleService.CreateArticle(userID, &req)
@@ -132,6 +233,7 @@ func SetupArticleRoutes(app *fiber.App) {
 			Data:    article,
 		})
 	})
+
 
 	articles.Put("/:id", func(c *fiber.Ctx) error {
 		id, _ := strconv.ParseUint(c.Params("id"), 10, 32)
